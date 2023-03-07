@@ -1,0 +1,7 @@
+ipykernel
+notebook
+pylibdmtx
+Pillow
+numpy
+timm
+albumentations
