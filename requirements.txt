@@ -10,3 +10,6 @@ matplotlib
 ppf-datamatrix
 pandas
 lightning
+PyYAML
+segmentation-models-pytorch
+
