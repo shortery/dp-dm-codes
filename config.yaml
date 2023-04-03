@@ -1,0 +1,22 @@
+valid_size: 500
+test_size: 500
+valid_seed: 0
+test_seed: 1
+valid_batch_size: 64
+test_batch_size: 64
+train_batch_size: 64
+
+architecture:
+  encoder_name: "mobilenet_v2"
+  encoder_weights: null
+  encoder_depth: 3
+  in_channels: 1
+  activation: "identity"
+  decoder_channels: [10, 10, 10]
+
+optimizer:
+  learning_rate: 0.001
+
+trainer:
+  limit_train_batches: 100
+  max_epochs: 2
