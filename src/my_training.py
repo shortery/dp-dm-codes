@@ -15,8 +15,16 @@ class LitAutoEncoder(pl.LightningModule):
         corrupted = batch["corrupted"]
         preds = self.autoencoder(corrupted)
         loss = torch.nn.functional.mse_loss(preds, target)
-        self.log("train_loss", loss)
+        self.log("train/mse_loss", loss)
         return loss
+
+    def validation_step(self, batch, batch_idx):
+        target = batch["target"]
+        corrupted = batch["corrupted"]
+        preds = self.autoencoder(corrupted)
+        mse_loss = torch.nn.functional.mse_loss(preds, target)
+        self.log("valid/mse_loss", mse_loss)
+        
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), **self.optimizer_config)

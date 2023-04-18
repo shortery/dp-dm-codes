@@ -1,3 +1,4 @@
+import os
 import yaml
 import torch
 import lightning.pytorch as pl
@@ -25,13 +26,33 @@ dataloader_train = torch.utils.data.DataLoader(
 )
 
 
-wandb_logger = WandbLogger(project="dm-codes", save_dir="checkpoints")
+os.makedirs("wandb", exist_ok=True)
+wandb_logger = WandbLogger(project="dm-codes", save_dir="wandb")
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
 # in terminal: wandb sync --clean
 
 autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimizer"])
-my_training = pl.Trainer(**config["trainer"], logger=wandb_logger)
-my_training.fit(model=autoencoder, train_dataloaders=dataloader_train)
 
-my_training.logged_metrics
+os.makedirs("checkpoints", exist_ok=True)
+checkpoint_callback = pl.callbacks.ModelCheckpoint(
+    dirpath=f"checkpoints/{wandb_logger.experiment.name}",
+    save_top_k=2,
+    save_last=True,
+    monitor="valid/mse_loss",
+    mode="min",
+)
+
+trainer = pl.Trainer(
+    **config["trainer"],
+    logger=wandb_logger,
+    callbacks=[checkpoint_callback],
+)
+
+trainer.fit(
+    model=autoencoder,
+    train_dataloaders=dataloader_train,
+    val_dataloaders=dataloader_valid,
+)
+
+trainer.logged_metrics

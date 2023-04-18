@@ -11,7 +11,7 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
         image = image.reshape(new_shape)
     return image.astype(np.float32) / 255
 
-def create_dataset(num_samples, seed):
+def create_dataset(num_samples: int, seed: int) -> pd.DataFrame:
     random.seed(seed)
     dataset = []
     dm_provider = dmp.DataMatrixProvider()

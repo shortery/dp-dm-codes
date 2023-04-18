@@ -18,5 +18,5 @@ optimizer:
   lr: 0.001
 
 trainer:
-  limit_train_batches: 100
-  max_epochs: 2
+  max_steps: 1000
+  val_check_interval: 50
