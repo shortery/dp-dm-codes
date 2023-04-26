@@ -11,12 +11,12 @@ from ppf.datamatrix.datamatrix import DataMatrix
 from pylibdmtx.pylibdmtx import encode
 
 import albumentations
-
+import cv2
 
 # from src.utils.datamatrix_augmentation import get_datamatrix_augs_preset
-# TODO this function has not been provided to me yet
+# TODO just basic resize and blur now
 def get_datamatrix_augs_preset(preset_file):
-    preserving = albumentations.Resize(80, 80)
+    preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_NEAREST)
     destructive = albumentations.MotionBlur(always_apply=True)
     return preserving, destructive
 
@@ -76,7 +76,7 @@ class DataMatrixProvider:
                  batch_size: int = 1,
                  visualize: bool = False,
                  augmentation_preset: str = "default_augmentation.py",
-                 crop_pixels: int = 10,
+                 crop_pixels: int = 0,
                  pylibdmtx_params: dict = {
                      "size": 8,
                      "mode": "square",
@@ -113,7 +113,7 @@ class DataMatrixProvider:
         w, h = data_matrix.width, data_matrix.height
 
         clean_dm_img = np.asarray(Image.frombytes("RGB", (w, h), data_matrix.pixels).convert("L"))
-        clean_dm_img = clean_dm_img[self.crop_px:-self.crop_px, self.crop_px:-self.crop_px]  # crop padding around DM
+        #clean_dm_img = clean_dm_img[self.crop_px:-self.crop_px, self.crop_px:-self.crop_px]  # crop padding around DM
         augmented_gt_dm_img = self.gt_preserving_augs(image=clean_dm_img)["image"]
         distorted_dm_img = self.destructive_augs(image=augmented_gt_dm_img)["image"]
         if self.visualize:
@@ -122,6 +122,7 @@ class DataMatrixProvider:
         return augmented_gt_dm_img, distorted_dm_img, encoded_text
 
     def generate_dm_ppf_datamatrix(self):
+        raise ValueError("don't use this")
         length = random.randint(self.min_len, self.max_len)
         text = "".join(random.choice(self.letters) for _ in range(length))
         mode = random.choice(self.mode_options) if self.mode == "random" else self.mode
