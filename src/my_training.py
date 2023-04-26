@@ -42,8 +42,6 @@ class LitAutoEncoder(pl.LightningModule):
         target_array = (target_array * 255).astype(np.uint8)
         correct_pixels = np.mean(target_array == preds_array)
 
-        self.not_decodable = []
-        self.not_correctly_decodable = []
         for i in range(batch_size):
             pred_array = preds_array[i].reshape(w, h)
             decoded_pred = pylibdmtx.pylibdmtx.decode(pred_array)
