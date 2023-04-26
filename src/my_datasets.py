@@ -31,7 +31,8 @@ class MyMapDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, i: int) -> dict:
         return {"target": _preprocess(self.dataset.iloc[i]["target"]),
-                "corrupted": _preprocess(self.dataset.iloc[i]["corrupted"])}
+                "corrupted": _preprocess(self.dataset.iloc[i]["corrupted"]),
+                "text": self.dataset.iloc[i]["text"].decode("utf8")}
     
 
 class MyIterableDataset(torch.utils.data.IterableDataset):
@@ -44,5 +45,6 @@ class MyIterableDataset(torch.utils.data.IterableDataset):
             batch = next(self.dm_provider)
             for dm_target, dm_corrupt, dm_text in batch:
                 yield {"target": _preprocess(dm_target),
-                       "corrupted": _preprocess(dm_corrupt)}
+                       "corrupted": _preprocess(dm_corrupt),
+                       "text": dm_text.decode("utf8")}
                 
