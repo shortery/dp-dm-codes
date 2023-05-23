@@ -7,6 +7,7 @@ from pytorch_lightning.loggers import WandbLogger
 import datamatrix_provider as dmp
 import my_datasets 
 import my_training
+import my_callbacks
 
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
@@ -43,10 +44,12 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
     mode="min",
 )
 
+image_callback = my_callbacks.MyPrintingCallback(num_images_per_batch=1)
+
 trainer = pl.Trainer(
     **config["trainer"],
     logger=wandb_logger,
-    callbacks=[checkpoint_callback],
+    callbacks=[checkpoint_callback, image_callback],
 )
 
 trainer.fit(

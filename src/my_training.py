@@ -4,6 +4,8 @@ import lightning.pytorch as pl
 import segmentation_models_pytorch as smp
 import pylibdmtx.pylibdmtx
 
+import my_utils
+
 
 class LitAutoEncoder(pl.LightningModule):
     def __init__(self, architecture_config, optimizer_config):
@@ -35,11 +37,10 @@ class LitAutoEncoder(pl.LightningModule):
         batch_size, num_channels, w, h = preds.shape
         assert num_channels == 1
 
-        preds_array = preds.clone().cpu().numpy()
-        preds_array = preds_array * 255
-        preds_array = np.clip(preds_array, 0, 255).astype(np.uint8)
-        target_array = target.clone().cpu().numpy()
-        target_array = (target_array * 255).astype(np.uint8)
+        target_array = my_utils.tensor_to_numpy_for_image(target)
+        corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)
+        preds_array = my_utils.tensor_to_numpy_for_image(preds)
+
         correct_pixels = np.mean(target_array == preds_array)
 
         for i in range(batch_size):
@@ -54,6 +55,7 @@ class LitAutoEncoder(pl.LightningModule):
         self.log("valid/decodable", decodable / batch_size)
         self.log("valid/correctly_decoded", correctly_decoded / batch_size)
 
+        return target_array, corrupted_array, preds_array
         
 
     def configure_optimizers(self):
