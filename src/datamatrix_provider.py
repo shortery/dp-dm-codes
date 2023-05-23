@@ -16,7 +16,7 @@ import cv2
 # from src.utils.datamatrix_augmentation import get_datamatrix_augs_preset
 # TODO just basic resize and blur now
 def get_datamatrix_augs_preset(preset_file):
-    preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_NEAREST)
+    preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_LANCZOS4)
     destructive = albumentations.MotionBlur(always_apply=True)
     return preserving, destructive
 
