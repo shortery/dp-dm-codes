@@ -13,7 +13,6 @@ from pylibdmtx.pylibdmtx import encode
 import albumentations
 import cv2
 
-# from src.utils.datamatrix_augmentation import get_datamatrix_augs_preset
 # TODO just basic resize and blur now
 def get_datamatrix_augs_preset(preset_file):
     preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_LANCZOS4)
@@ -67,7 +66,6 @@ class DataMatrixProvider:
     """
 
     def __init__(self,
-                 library: str = "pylibdmtx",
                  provider_type: DataMatrixProviderType = DataMatrixProviderType.RandomDMGenerator,
                  data_file: Optional[str] = None,
                  letters: str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
@@ -97,8 +95,7 @@ class DataMatrixProvider:
         self.min_len, self.max_len = min_len, max_len
         self.gt_preserving_augs, self.destructive_augs = get_datamatrix_augs_preset(preset_file=augmentation_preset)
         self.crop_px = crop_pixels
-        self.generate_dm, self.block_size, self.mode, self.mode_options, self.fat_constant = self.init_dm_provider(
-            library, pylibdmtx_params)
+        self.generate_dm, self.block_size, self.mode, self.mode_options, self.fat_constant = self.init_dm_provider(pylibdmtx_params)
 
     def __iter__(self):
         return self
@@ -121,59 +118,8 @@ class DataMatrixProvider:
 
         return augmented_gt_dm_img, distorted_dm_img, encoded_text
 
-    def generate_dm_ppf_datamatrix(self):
-        raise ValueError("don't use this")
-        length = random.randint(self.min_len, self.max_len)
-        text = "".join(random.choice(self.letters) for _ in range(length))
-        mode = random.choice(self.mode_options) if self.mode == "random" else self.mode
-        fat_constant = random.randint(self.fat_constant[0], self.fat_constant[1])
-        size = random.randint(self.block_size[0], self.block_size[1])
-
-        data_matrix_arr = DataMatrix(text).matrix
-        print(data_matrix_arr)
-        height = len(data_matrix_arr)
-        width = len(data_matrix_arr[0])
-        image = Image.new('L', (size * width, size * height), 255)
-        draw = ImageDraw.Draw(image)
-        mat_arr = np.asarray(data_matrix_arr)
-
-        offset_x = offset_y = 0
-        for i in range(width):
-            for j in range(height):
-                if mat_arr[i][j] == 1:
-                    if mode == 'circle':
-                        draw.ellipse((
-                            offset_x + j * size + fat_constant,
-                            offset_y + i * size + fat_constant,
-                            offset_x + (j + 1) * size - fat_constant,
-                            offset_y + (i + 1) * size - fat_constant), fill='black', outline='black')
-                    elif mode == 'square':
-                        draw.rectangle((
-                            j * size + fat_constant,
-                            i * size + fat_constant,
-                            (j + 1) * size - fat_constant,
-                            (i + 1) * size - fat_constant), fill='black', outline='black')
-                    elif mode == 'triangle':
-                        draw.polygon(
-                            [(offset_x + (j + 0.5) * size, offset_y + (i * size) + fat_constant),
-                             (offset_x + (j + 1) * size - fat_constant, offset_y + (i + 1) * size - fat_constant),
-                             (offset_x + j * size + fat_constant, offset_y + (i + 1) * size - fat_constant)],
-                            fill='black', outline='black')
-
-        augmented_gt_dm_img = self.gt_preserving_augs(image=np.array(image))["image"]
-        distorted_dm_img = self.destructive_augs(image=augmented_gt_dm_img)["image"]
-
-        if self.visualize:
-            visualize_dm_triplet(image, text, augmented_gt_dm_img, distorted_dm_img)
-
-        bitmap = np.zeros((32, 32), dtype=np.int)
-        bitmap[:mat_arr.shape[0], :mat_arr.shape[1]] = mat_arr
-
-        return augmented_gt_dm_img, distorted_dm_img, text.encode('utf8'), bitmap
-
-    def init_dm_provider(self, library, pylibdmtx_params):
-        assert library in ["pylibdmtx", "ppf-datamatrix"], 'Supported libraries are "pylibdmtx", "ppf-datamatrix".'
-        generate_function = self.generate_dm_pylibdmtx if library == "pylibdmtx" else self.generate_dm_ppf_datamatrix
+    def init_dm_provider(self, pylibdmtx_params):
+        generate_function = self.generate_dm_pylibdmtx
         block_size = pylibdmtx_params.get("size", 10)
         if isinstance(block_size, int):
             block_size = (block_size, block_size)
@@ -196,7 +142,6 @@ class DataMatrixProvider:
 # PERFORMANCE BENCHMARK
 if __name__ == "__main__":
     dm_provider = DataMatrixProvider(
-        library="ppf-datamatrix",
         visualize=True,
         augmentation_preset="augmentation_v2.py",
         pylibdmtx_params={
