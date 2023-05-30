@@ -13,3 +13,4 @@ lightning
 PyYAML
 segmentation-models-pytorch
 wandb
+plotly
