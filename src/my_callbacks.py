@@ -11,9 +11,9 @@ import my_utils
 
 
 class MyPrintingCallback(Callback):
-    def __init__(self, num_images_per_batch: int):
+    def __init__(self, list_idxs: list[int]):
         super().__init__()
-        self.num_images_per_batch = num_images_per_batch
+        self.list_idxs = list_idxs
 
     def on_validation_batch_end(self,
         trainer: pl.Trainer,
@@ -25,15 +25,16 @@ class MyPrintingCallback(Callback):
     ) -> None:
         """Called when the validation batch ends."""
 
-        target, corrupted, pred = outputs
+        if batch_idx in self.list_idxs:
 
-        target_array = my_utils.tensor_to_numpy_for_image(target)
-        corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)
-        pred_array = my_utils.tensor_to_numpy_for_image(pred)
+            target, corrupted, pred = outputs
 
-        for i in range(self.num_images_per_batch):
-            images = np.concatenate([target_array[i], corrupted_array[i], pred_array[i]], axis=1)
+            target_array = my_utils.tensor_to_numpy_for_image(target)
+            corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)
+            pred_array = my_utils.tensor_to_numpy_for_image(pred)
+
+            images = np.concatenate([target_array[0], corrupted_array[0], pred_array[0]], axis=1)
             wandb.log({
-                f"images_{batch_idx}_{i}/concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
+                f"images_{batch_idx}_0/concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
             })
 

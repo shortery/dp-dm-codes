@@ -1,6 +1,7 @@
 import os
 import yaml
 import torch
+import numpy as np
 import lightning.pytorch as pl
 from pytorch_lightning.loggers import WandbLogger
 
@@ -44,7 +45,9 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
     mode="min",
 )
 
-image_callback = my_callbacks.MyPrintingCallback(num_images_per_batch=1)
+log_n_predictions = 6
+list_idxs = [len(dataloader_valid)*i//log_n_predictions for i in range(log_n_predictions)]
+image_callback = my_callbacks.MyPrintingCallback(list_idxs)
 
 trainer = pl.Trainer(
     **config["trainer"],
