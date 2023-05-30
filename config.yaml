@@ -8,11 +8,12 @@ train_batch_size: 64
 
 architecture:
   encoder_name: "mobilenet_v2"
-  encoder_weights: null
   encoder_depth: 3
+  encoder_weights: null
+  decoder_channels: [10, 10, 10]
   in_channels: 1
   activation: "identity"
-  decoder_channels: [10, 10, 10]
+
 
 optimizer:
   lr: 0.001
