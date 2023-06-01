@@ -6,18 +6,11 @@ from typing import Optional
 
 from matplotlib import pyplot as plt
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 from ppf.datamatrix.datamatrix import DataMatrix
 from pylibdmtx.pylibdmtx import encode
 
-import albumentations
-import cv2
-
-# TODO just basic resize and blur now
-def get_datamatrix_augs_preset(preset_file):
-    preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_LANCZOS4)
-    destructive = albumentations.MotionBlur(always_apply=True)
-    return preserving, destructive
+import my_augmentations
 
 
 def visualize_dm_triplet(image, text, augmented_gt_dm_img, distorted_dm_img):
@@ -73,7 +66,6 @@ class DataMatrixProvider:
                  max_len: int = 32,
                  batch_size: int = 1,
                  visualize: bool = False,
-                 augmentation_preset: str = "default_augmentation.py",
                  crop_pixels: int = 0,
                  pylibdmtx_params: dict = {
                      "size": 8,
@@ -93,7 +85,7 @@ class DataMatrixProvider:
         self.visualize = visualize
         self.letters = letters
         self.min_len, self.max_len = min_len, max_len
-        self.gt_preserving_augs, self.destructive_augs = get_datamatrix_augs_preset(preset_file=augmentation_preset)
+        self.gt_preserving_augs, self.destructive_augs = my_augmentations.get_datamatrix_augs_preset()
         self.crop_px = crop_pixels
         self.generate_dm, self.block_size, self.mode, self.mode_options, self.fat_constant = self.init_dm_provider(pylibdmtx_params)
 
@@ -143,7 +135,6 @@ class DataMatrixProvider:
 if __name__ == "__main__":
     dm_provider = DataMatrixProvider(
         visualize=True,
-        augmentation_preset="augmentation_v2.py",
         pylibdmtx_params={
             "size": 10,
             "mode": "random",

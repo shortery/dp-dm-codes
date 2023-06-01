@@ -43,10 +43,8 @@ perfect_metrics = []
 for batch in dataloader_valid:
     metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["target"], text=batch["text"], prefix="perfect_network/")
     perfect_metrics.append(metrics)
-perfect_metrics_df = pd.DataFrame(perfect_metrics).mean().to_frame(name="value").reset_index(names="metric")
-wandb.log({"perfect_network/": wandb.plot.bar(
-    wandb.Table(dataframe=perfect_metrics_df), value="value", label="metric", title="Perfect network metrics"
-)})
+perfect_metrics = pd.DataFrame(perfect_metrics).mean().to_dict()
+wandb.log(perfect_metrics)
 
 # metrics if the network just copies input
 # i.e., how many inputs can be (correctly) decoded just by the pylibdmtx code reader
@@ -54,10 +52,8 @@ baseline_metrics = []
 for batch in dataloader_valid:
     metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["corrupted"], text=batch["text"], prefix="copy_baseline/")
     baseline_metrics.append(metrics)
-baseline_metrics_df = pd.DataFrame(baseline_metrics).mean().to_frame(name="value").reset_index(names="metric")
-wandb.log({"copy_baseline/": wandb.plot.bar(
-    wandb.Table(dataframe=baseline_metrics_df), value="value", label="metric", title="Copy baseline network metrics"
-)})
+baseline_metrics = pd.DataFrame(baseline_metrics).mean().to_dict()
+wandb.log(baseline_metrics)
 
 
 autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimizer"])

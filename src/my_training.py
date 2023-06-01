@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import lightning.pytorch as pl
 import segmentation_models_pytorch as smp
-import pylibdmtx.pylibdmtx
 
 import my_utils
 
@@ -20,7 +19,7 @@ class LitAutoEncoder(pl.LightningModule):
         corrupted = batch["corrupted"]
         preds = self.autoencoder(corrupted)
         loss = torch.nn.functional.mse_loss(preds, target)
-        self.log("train/mse_loss", loss)
+        self.log("train/mse_loss", loss, batch_size=target.shape[0])
         return loss
 
 
@@ -31,7 +30,7 @@ class LitAutoEncoder(pl.LightningModule):
         pred: torch.Tensor = self.autoencoder(corrupted)
 
         metrics = my_utils.compute_metrics(target, pred, text, prefix="valid/")
-        self.log_dict(metrics)
+        self.log_dict(metrics, batch_size=target.shape[0])
 
         return target, corrupted, pred
         
