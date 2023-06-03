@@ -131,19 +131,19 @@ class DataMatrixProvider:
 
 
 
-# PERFORMANCE BENCHMARK
-if __name__ == "__main__":
-    dm_provider = DataMatrixProvider(
-        visualize=True,
-        pylibdmtx_params={
-            "size": 10,
-            "mode": "random",
-            "fat_constant": [-1, 1]
-        }
-    )
-    batch_size = dm_provider.batch_size
-    t = time.time()
-    for idx, a in enumerate(dm_provider):
-        if idx > int(1000 / batch_size):
-            break
-    print(f"Mean time to generate 1 DM code: {round(1000 * (time.time() - t) / (idx * batch_size), 6)} ms")
+# # PERFORMANCE BENCHMARK
+# if __name__ == "__main__":
+#     dm_provider = DataMatrixProvider(
+#         visualize=True,
+#         pylibdmtx_params={
+#             "size": 10,
+#             "mode": "random",
+#             "fat_constant": [-1, 1]
+#         }
+#     )
+#     batch_size = dm_provider.batch_size
+#     t = time.time()
+#     for idx, a in enumerate(dm_provider):
+#         if idx > int(1000 / batch_size):
+#             break
+#     print(f"Mean time to generate 1 DM code: {round(1000 * (time.time() - t) / (idx * batch_size), 6)} ms")
