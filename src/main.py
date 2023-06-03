@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import lightning.pytorch as pl
 from pytorch_lightning.loggers import WandbLogger
-import wandb
 
 import datamatrix_provider as dmp
 import my_datasets 
@@ -32,7 +31,7 @@ dataloader_train = torch.utils.data.DataLoader(
 
 
 os.makedirs("wandb", exist_ok=True)
-wandb_logger = WandbLogger(project="dm-codes", save_dir="wandb")
+wandb_logger = WandbLogger(project="dp-dm-codes", save_dir="wandb")
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
 # in terminal: wandb sync --clean
@@ -44,7 +43,6 @@ for batch in dataloader_valid:
     metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["target"], text=batch["text"], prefix="perfect_network/")
     perfect_metrics.append(metrics)
 perfect_metrics = pd.DataFrame(perfect_metrics).mean().to_dict()
-wandb.log(perfect_metrics)
 
 # metrics if the network just copies input
 # i.e., how many inputs can be (correctly) decoded just by the pylibdmtx code reader
@@ -53,8 +51,6 @@ for batch in dataloader_valid:
     metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["corrupted"], text=batch["text"], prefix="copy_baseline/")
     baseline_metrics.append(metrics)
 baseline_metrics = pd.DataFrame(baseline_metrics).mean().to_dict()
-wandb.log(baseline_metrics)
-
 
 autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimizer"])
 
@@ -74,8 +70,15 @@ image_callback = my_callbacks.MyPrintingCallback(list_idxs)
 trainer = pl.Trainer(
     **config["trainer"],
     logger=wandb_logger,
-    callbacks=[checkpoint_callback, image_callback],
+    callbacks=[
+        checkpoint_callback,
+        image_callback
+    ],
 )
+
+wandb_logger.log_metrics(perfect_metrics)
+wandb_logger.log_metrics(baseline_metrics)
+wandb_logger.log_table(key="validation_characteristics", dataframe=pd.DataFrame([perfect_metrics | baseline_metrics]))
 
 trainer.fit(
     model=autoencoder,

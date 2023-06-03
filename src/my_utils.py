@@ -1,6 +1,10 @@
 import numpy as np
 import torch
+import PIL.Image, PIL.ImageOps
 import pylibdmtx.pylibdmtx
+import lovely_tensors
+import lovely_numpy
+import warnings
 
 def image_to_tensor():
     # torchvision.transforms.functional.pil_to_tensor
@@ -23,8 +27,25 @@ def tensor_to_numpy_for_image(tensor: torch.Tensor) -> np.ndarray:
     return image_array
 
 
+def decode_dm_code(dm_code: np.ndarray):
+    "if possible, decode dm code array to text"
+    assert len(dm_code.shape) == 2
+
+    dm_code_padded = np.pad(dm_code, 1, mode='constant') # add one-pixel width border of 0 values
+    decoded_dm_code = pylibdmtx.pylibdmtx.decode(dm_code_padded)
+    
+    if len(decoded_dm_code) == 0:
+        return None
+    try:
+        decoded_text = decoded_dm_code[0].data.decode("utf8")
+    except UnicodeDecodeError:
+        decoded_text = None
+
+    return decoded_text
+
+
 def compute_metrics(target: torch.Tensor, pred: torch.Tensor, text: list[str], prefix: str = None):
-    mse_loss = torch.nn.functional.mse_loss(target, pred)
+    mse_loss: float = torch.nn.functional.mse_loss(target, pred).item()
 
     target_array = tensor_to_numpy_for_image(target)
     pred_array = tensor_to_numpy_for_image(pred)
@@ -38,10 +59,10 @@ def compute_metrics(target: torch.Tensor, pred: torch.Tensor, text: list[str], p
 
     for i in range(batch_size):
         pred_array_i = pred_array[i].reshape(w, h)
-        decoded_pred_i = pylibdmtx.pylibdmtx.decode(pred_array_i)
-        if len(decoded_pred_i) != 0:
+        decoded_text_i = decode_dm_code(pred_array_i)
+        if decoded_text_i is not None:
             decodable += 1
-            if text[i] == decoded_pred_i[0].data.decode("utf8"):
+            if text[i] == decoded_text_i:
                 correctly_decoded += 1
 
     if prefix is None:
@@ -55,3 +76,14 @@ def compute_metrics(target: torch.Tensor, pred: torch.Tensor, text: list[str], p
     }
 
     return metrics
+
+
+def lovely(x):
+    "summarize important numpy/tensor properties"
+    if isinstance(x, np.ndarray):
+        return lovely_numpy.lovely(x)
+    elif isinstance(x, torch.Tensor):
+        return lovely_tensors.lovely(x)
+    else:
+        warnings.warn(f"lovely: unknown type {type(x)}")
+        return str(x)
