@@ -15,10 +15,11 @@ class LitAutoEncoder(pl.LightningModule):
 
 
     def training_step(self, batch, batch_idx):
-        target = batch["target"]
-        corrupted = batch["corrupted"]
-        preds = self.autoencoder(corrupted)
-        loss = torch.nn.functional.mse_loss(preds, target)
+        target: torch.Tensor = batch["target"]
+        corrupted: torch.Tensor = batch["corrupted"]
+        pred: torch.Tensor = self.autoencoder(corrupted)
+
+        loss: torch.Tensor = torch.nn.functional.mse_loss(pred, target)
         self.log("train/mse_loss", loss, batch_size=target.shape[0])
         return loss
 
