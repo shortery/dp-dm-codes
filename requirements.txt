@@ -9,8 +9,11 @@ torch
 matplotlib
 ppf-datamatrix
 pandas
-lightning
+lightning==2.0.2
+pytorch-lightning==2.0.2
 PyYAML
 segmentation-models-pytorch
 wandb
 plotly
+lovely-numpy
+lovely-tensors
