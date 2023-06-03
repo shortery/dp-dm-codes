@@ -35,6 +35,6 @@ class MyPrintingCallback(Callback):
 
             images = np.concatenate([target_array[0], corrupted_array[0], pred_array[0]], axis=1)
             wandb.log({
-                f"images_{batch_idx}_0/concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
+                f"images/{batch_idx}_0_concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
             })
 
