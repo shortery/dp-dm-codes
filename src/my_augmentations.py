@@ -59,15 +59,15 @@ def get_datamatrix_augs_preset():
         albumentations.CoarseDropout(fill_value=0, max_height=2, max_width=2, max_holes=40),
         albumentations.CoarseDropout(fill_value=255, max_height=2, max_width=2, max_holes=40),
         albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=(3, 5)),
+            albumentations.MotionBlur(blur_limit=3),
             albumentations.MedianBlur(blur_limit=3),
-            albumentations.Defocus(radius=(1,3)),
-        ]),
+            albumentations.Defocus(radius=1),
+        ], p=0.75),
         ToRGB(always_apply=True),
         albumentations.Spatter(),
         albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4),
         albumentations.RandomShadow(),
-        albumentations.RandomSunFlare(src_radius=100),
+        albumentations.RandomSunFlare(src_radius=60),
         ToGrey(always_apply=True),
     ])
     return preserving, destructive
