@@ -1,3 +1,5 @@
 name: dm-codes
 dependencies:
   - python=3.9
+  - conda-forge::pylibdmtx
+
