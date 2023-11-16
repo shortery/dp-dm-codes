@@ -5,7 +5,7 @@ Pillow
 numpy
 timm
 albumentations
-torch
+torch==2.0.1
 matplotlib
 ppf-datamatrix
 pandas
