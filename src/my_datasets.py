@@ -9,6 +9,10 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
     if image.ndim == 2:
         new_shape = (1,) + image.shape
         image = image.reshape(new_shape)
+    if (image.ndim == 3) & (image.shape[2] == 3):
+        w, h, num_channels = image.shape
+        image = np.transpose(image, (2, 0, 1))
+        assert image.shape == (num_channels, w, h) 
     return image.astype(np.float32) / 255
 
 def create_dataset(num_samples: int, seed: int) -> pd.DataFrame:

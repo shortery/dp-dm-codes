@@ -1,6 +1,8 @@
 import warnings
 import albumentations
 import cv2
+import numpy as np
+from random import sample
 
 # Taken from: https://github.com/albumentations-team/albumentations/blob/master/albumentations/augmentations/transforms.py
 # because it is not released on pypi yet
@@ -50,24 +52,47 @@ class ToGrey(albumentations.ImageOnlyTransform):
 
     def get_transform_init_args_names(self):
         return ()
+    
+
+
+class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
+    """Change background white pixels to random light color"""
+
+    def __init__(self, always_apply=True, p=1.0):
+        super(ChangeBackgroundColor, self).__init__(always_apply=always_apply, p=p)
+
+    def apply(self, img, **params):
+        if not albumentations.is_rgb_image(img):
+            raise TypeError("ChangeBackgroundColor transformation expects 3-channel images.")
+        
+        synth_img = np.array(img)
+        red, green, blue = synth_img.T
+        white_areas = (red == 255) & (blue == 255) & (green == 255)
+        random_colors = sample(range(180, 240), 3)
+        synth_img[white_areas.T] = random_colors
+        return synth_img
+
+    def get_transform_init_args_names(self):
+        return ()
 
 
 
 def get_datamatrix_augs_preset():
-    preserving = albumentations.Resize(80, 80, interpolation=cv2.INTER_LANCZOS4)
+    preserving = albumentations.Compose([
+        albumentations.Resize(120, 120, interpolation=cv2.INTER_LANCZOS4),
+        albumentations.RandomRotate90()
+    ], p=1)
     destructive = albumentations.Compose([
-        albumentations.CoarseDropout(fill_value=0, max_height=2, max_width=2, max_holes=40),
-        albumentations.CoarseDropout(fill_value=255, max_height=2, max_width=2, max_holes=40),
-        albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=3),
-            albumentations.MedianBlur(blur_limit=3),
-            albumentations.Defocus(radius=1),
-        ], p=0.75),
         ToRGB(always_apply=True),
-        albumentations.Spatter(),
-        albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4),
-        albumentations.RandomShadow(),
-        albumentations.RandomSunFlare(src_radius=60),
-        ToGrey(always_apply=True),
+        ChangeBackgroundColor(always_apply=True),
+        albumentations.ISONoise(intensity=(0.5, 1)),
+        albumentations.OneOf([
+            albumentations.MotionBlur(blur_limit=(9, 13), p=1, allow_shifted=False),
+            albumentations.Defocus(radius=(3, 5), p=1),
+            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=1),
+        ], p=1),
+        albumentations.Spatter(intensity=0.5),
+        albumentations.RandomSunFlare(src_radius=80, p=0.3)
     ])
     return preserving, destructive
+

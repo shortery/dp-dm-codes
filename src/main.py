@@ -1,7 +1,7 @@
 import os
 import yaml
 import torch
-import numpy as np
+import torchvision.transforms.functional
 import pandas as pd
 import lightning.pytorch as pl
 from pytorch_lightning.loggers import WandbLogger
@@ -34,7 +34,7 @@ os.makedirs("wandb", exist_ok=True)
 wandb_logger = WandbLogger(project="dp-dm-codes", save_dir="wandb")
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
-# in terminal: wandb sync --clean
+# in terminal: wandb sync --cleanndarray
 
 
 # metrics if the network works perfectly (prediction = target)
@@ -48,7 +48,8 @@ perfect_metrics = pd.DataFrame(perfect_metrics).mean().to_dict()
 # i.e., how many inputs can be (correctly) decoded just by the pylibdmtx code reader
 baseline_metrics = []
 for batch in dataloader_valid:
-    metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["corrupted"], text=batch["text"], prefix="copy_baseline/")
+    corrupt = torchvision.transforms.functional.rgb_to_grayscale(batch["corrupted"])
+    metrics = my_utils.compute_metrics(target=batch["target"], pred=corrupt, text=batch["text"], prefix="copy_baseline/")
     baseline_metrics.append(metrics)
 baseline_metrics = pd.DataFrame(baseline_metrics).mean().to_dict()
 

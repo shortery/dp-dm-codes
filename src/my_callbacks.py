@@ -5,6 +5,9 @@ import numpy as np
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import Callback
 import wandb
+import torch
+import torchvision.transforms.functional as ttf
+import PIL.Image
 
 import my_training
 import my_utils
@@ -28,6 +31,10 @@ class MyPrintingCallback(Callback):
         if batch_idx in self.list_idxs:
 
             target, corrupted, pred = outputs
+
+            # "convert" grayscale to rgb by copying the values to other channels
+            target = target.repeat(1, 3, 1, 1)
+            pred = pred.repeat(1, 3, 1, 1)
 
             target_array = my_utils.tensor_to_numpy_for_image(target)
             corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)

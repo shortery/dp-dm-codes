@@ -12,8 +12,6 @@ def image_to_tensor():
 
 def tensor_to_numpy_for_image(tensor: torch.Tensor) -> np.ndarray:
     batch_size, num_channels, w, h = tensor.shape
-    if num_channels != 1:
-        raise ValueError('Number of channels must be 1.')
     
     image_array = tensor.clone().cpu().numpy()
     image_array = image_array * 255
@@ -22,7 +20,8 @@ def tensor_to_numpy_for_image(tensor: torch.Tensor) -> np.ndarray:
 
     # wands.Image expects num_channels as the last dimension
     # that's standard order for numpy array 
-    image_array = image_array.reshape(batch_size, w, h, num_channels)    
+    image_array = np.transpose(image_array, (0, 2, 3, 1))
+    assert image_array.shape == (batch_size, w, h, num_channels)    
 
     return image_array
 
@@ -31,7 +30,7 @@ def decode_dm_code(dm_code: np.ndarray):
     "if possible, decode dm code array to text"
     assert len(dm_code.shape) == 2
 
-    dm_code_padded = np.pad(dm_code, 1, mode='constant') # add one-pixel width border of 0 values
+    dm_code_padded = np.pad(dm_code, 5, mode='constant', constant_values=255) # add 5-pixel width border of white pixels
     decoded_dm_code = pylibdmtx.pylibdmtx.decode(dm_code_padded)
     
     if len(decoded_dm_code) == 0:
