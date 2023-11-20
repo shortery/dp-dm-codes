@@ -2,7 +2,7 @@ import warnings
 import albumentations
 import cv2
 import numpy as np
-from random import sample
+import random
 
 # Taken from: https://github.com/albumentations-team/albumentations/blob/master/albumentations/augmentations/transforms.py
 # because it is not released on pypi yet
@@ -68,7 +68,7 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
         synth_img = np.array(img)
         red, green, blue = synth_img.T
         white_areas = (red == 255) & (blue == 255) & (green == 255)
-        random_colors = sample(range(180, 240), 3)
+        random_colors = random.sample(range(180, 240), 3)
         synth_img[white_areas.T] = random_colors
         return synth_img
 
@@ -77,22 +77,24 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
 
 
 
-def get_datamatrix_augs_preset():
+def get_datamatrix_augs_preset(seed=0):
+    random.seed(seed)
     preserving = albumentations.Compose([
         albumentations.Resize(120, 120, interpolation=cv2.INTER_LANCZOS4),
-        albumentations.RandomRotate90()
+        albumentations.RandomRotate90(),
+        albumentations.Rotate(limit=[-2, 2], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
     ], p=1)
     destructive = albumentations.Compose([
         ToRGB(always_apply=True),
         ChangeBackgroundColor(always_apply=True),
-        albumentations.ISONoise(intensity=(0.5, 1)),
+        albumentations.ISONoise(intensity=(0.5, 0.9), p=0.7),
         albumentations.OneOf([
             albumentations.MotionBlur(blur_limit=(9, 13), p=1, allow_shifted=False),
             albumentations.Defocus(radius=(3, 5), p=1),
             albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=1),
         ], p=1),
-        albumentations.Spatter(intensity=0.5),
-        albumentations.RandomSunFlare(src_radius=80, p=0.3)
+        albumentations.Spatter(intensity=0.5, p=0.7),
+        albumentations.RandomSunFlare(src_radius=80, num_flare_circles_lower=3, p=0.35)
     ])
     return preserving, destructive
 
