@@ -32,6 +32,7 @@ dataloader_train = torch.utils.data.DataLoader(
 
 os.makedirs("wandb", exist_ok=True)
 wandb_logger = WandbLogger(project="dp-dm-codes", save_dir="wandb")
+wandb_logger.experiment.config.update(config)
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
 # in terminal: wandb sync --cleanndarray
