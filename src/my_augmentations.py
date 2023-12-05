@@ -68,8 +68,11 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
         synth_img = np.array(img)
         red, green, blue = synth_img.T
         white_areas = (red == 255) & (blue == 255) & (green == 255)
-        random_colors = random.sample(range(180, 240), 3)
-        synth_img[white_areas.T] = random_colors
+        if random.random() <= 0.5:
+            random_color = random.sample(range(190, 250), 3) # light color
+        else: 
+            random_color = [random.randrange(170, 252)] * 3 # shade of grey
+        synth_img[white_areas.T] = random_color
         return synth_img
 
     def get_transform_init_args_names(self):
@@ -77,12 +80,11 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
 
 
 
-def get_datamatrix_augs_preset(seed=0):
-    random.seed(seed)
+def get_datamatrix_augs_preset():
     preserving = albumentations.Compose([
         albumentations.Resize(120, 120, interpolation=cv2.INTER_LANCZOS4),
         albumentations.RandomRotate90(),
-        albumentations.Rotate(limit=[-2, 2], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
+        albumentations.Rotate(limit=[-3, 3], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
     ], p=1)
     destructive = albumentations.Compose([
         ToRGB(always_apply=True),

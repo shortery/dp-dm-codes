@@ -64,9 +64,10 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
     mode="min",
 )
 
-log_n_predictions = 6
-list_idxs = [len(dataloader_valid)*i//log_n_predictions for i in range(log_n_predictions)]
-image_callback = my_callbacks.MyPrintingCallback(list_idxs)
+log_n_predictions = 12
+list_idxs = [config["valid_size"]*i//log_n_predictions for i in range(log_n_predictions)]
+batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in list_idxs]
+image_callback = my_callbacks.MyPrintingCallback(batch_image_idxs)
 
 trainer = pl.Trainer(
     **config["trainer"],
