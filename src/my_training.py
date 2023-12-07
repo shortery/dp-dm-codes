@@ -34,6 +34,18 @@ class LitAutoEncoder(pl.LightningModule):
         self.log_dict(metrics, batch_size=target.shape[0])
 
         return target, corrupted, pred
+    
+
+    def test_step(self, batch, batch_idx):
+        target: torch.Tensor = batch["target"]
+        corrupted: torch.Tensor = batch["corrupted"]
+        text: list[str] = batch["text"]
+        pred: torch.Tensor = self.autoencoder(corrupted)
+
+        metrics = my_utils.compute_metrics(target, pred, text, prefix="test/")
+        self.log_dict(metrics, batch_size=target.shape[0])
+
+        return target, corrupted, pred
         
 
     def configure_optimizers(self):

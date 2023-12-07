@@ -83,10 +83,18 @@ wandb_logger.log_metrics(perfect_metrics)
 wandb_logger.log_metrics(baseline_metrics)
 wandb_logger.log_table(key="validation_characteristics", dataframe=pd.DataFrame([perfect_metrics | baseline_metrics]))
 
-trainer.fit(
-    model=autoencoder,
-    train_dataloaders=dataloader_train,
-    val_dataloaders=dataloader_valid,
-)
+#trainer.fit(
+#    model=autoencoder,
+#    train_dataloaders=dataloader_train,
+#    val_dataloaders=dataloader_valid,
+#)
+
+# automatically auto-loads the best weights from the previous run
+#trainer.test(dataloaders=dataloader_test)
+
+# or call with preptrained model
+loaded_model = my_training.LitAutoEncoder.load_from_checkpoint(config["checkpoint_path"])
+trainer = pl.Trainer()
+trainer.test(loaded_model, dataloaders=dataloader_test)
 
 trainer.logged_metrics

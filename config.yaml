@@ -23,3 +23,5 @@ trainer:
   max_steps: 5000
   val_check_interval: 50
   log_every_n_steps: 25
+
+checkpoint_path: "checkpoints/peach-galaxy-63/epoch=0-step=5000.ckpt"
