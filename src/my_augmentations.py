@@ -82,7 +82,7 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
 
 def get_datamatrix_augs_preset():
     preserving = albumentations.Compose([
-        albumentations.Resize(120, 120, interpolation=cv2.INTER_LANCZOS4),
+        albumentations.Resize(128, 128, interpolation=cv2.INTER_NEAREST),
         albumentations.RandomRotate90(),
         albumentations.Rotate(limit=[-3, 3], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
     ], p=1)
@@ -91,11 +91,11 @@ def get_datamatrix_augs_preset():
         ChangeBackgroundColor(always_apply=True),
         albumentations.ISONoise(intensity=(0.5, 0.9), p=0.7),
         albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=(9, 13), p=1, allow_shifted=False),
-            albumentations.Defocus(radius=(3, 5), p=1),
+            albumentations.MotionBlur(blur_limit=(9, 15), p=1, allow_shifted=False),
+            albumentations.Defocus(radius=(3, 7), p=1),
             albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=1),
         ], p=1),
-        albumentations.Spatter(intensity=0.5, p=0.7),
+        albumentations.Spatter(intensity=0.6, p=0.7),
         albumentations.RandomSunFlare(src_radius=80, num_flare_circles_lower=3, p=0.35)
     ])
     return preserving, destructive

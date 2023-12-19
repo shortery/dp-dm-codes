@@ -9,7 +9,7 @@ import my_utils
 class LitAutoEncoder(pl.LightningModule):
     def __init__(self, architecture_config, optimizer_config):
         super().__init__()
-        self.autoencoder = smp.Unet(**architecture_config)
+        self.autoencoder = smp.create_model(**architecture_config)
         self.optimizer_config = optimizer_config
         self.save_hyperparameters()
 

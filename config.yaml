@@ -1,4 +1,4 @@
-valid_size: 500
+valid_size: 1000
 test_size: 500
 valid_seed: 0
 test_seed: 1
@@ -7,10 +7,9 @@ test_batch_size: 64
 train_batch_size: 64
 
 architecture:
+  arch: "UnetPlusPlus"
   encoder_name: "mobilenet_v2"
-  encoder_depth: 3
   encoder_weights: null
-  decoder_channels: [10, 10, 10]
   in_channels: 3
   classes: 1
   activation: "identity"
@@ -20,8 +19,9 @@ optimizer:
   lr: 0.001
 
 trainer:
-  max_steps: 5000
-  val_check_interval: 50
-  log_every_n_steps: 25
+  max_steps: -1
+  max_epochs: -1
+  val_check_interval: 500
+  log_every_n_steps: 100
 
 checkpoint_path: "checkpoints/peach-galaxy-63/epoch=0-step=5000.ckpt"

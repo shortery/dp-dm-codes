@@ -59,23 +59,33 @@ autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimiz
 os.makedirs("checkpoints", exist_ok=True)
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
     dirpath=f"checkpoints/{wandb_logger.experiment.name}",
+    filename="step={step}--corr_dec={valid/correctly_decoded:.2f}",
+    auto_insert_metric_name=False,
     save_top_k=2,
     save_last=True,
-    monitor="valid/mse_loss",
-    mode="min",
+    monitor="valid/correctly_decoded",
+    mode="max",
 )
 
-log_n_predictions = 12
+log_n_predictions = 27
 list_idxs = [config["valid_size"]*i//log_n_predictions for i in range(log_n_predictions)]
 batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in list_idxs]
 image_callback = my_callbacks.MyPrintingCallback(batch_image_idxs)
+
+early_stop_callback = pl.callbacks.EarlyStopping(
+    monitor="valid/correctly_decoded",
+    mode="max",
+    min_delta=0.005,
+    patience=3    
+)
 
 trainer = pl.Trainer(
     **config["trainer"],
     logger=wandb_logger,
     callbacks=[
         checkpoint_callback,
-        image_callback
+        image_callback,
+        early_stop_callback
     ],
 )
 
