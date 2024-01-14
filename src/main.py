@@ -16,12 +16,8 @@ with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 dataloader_valid = torch.utils.data.DataLoader(
-    dataset=my_datasets.MyMapDataset(my_datasets.create_dataset(config["valid_size"], config["valid_seed"])),
+    dataset=my_datasets.MyMapDatasetFromFolder(folder="./synthetic_valid_dataset"),
     batch_size=config["valid_batch_size"]
-)
-dataloader_test = torch.utils.data.DataLoader(
-    dataset=my_datasets.MyMapDataset(my_datasets.create_dataset(config["test_size"], config["test_seed"])),
-    batch_size=config["test_batch_size"]
 )
 
 dataloader_train = torch.utils.data.DataLoader(
@@ -71,7 +67,8 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
 )
 
 log_n_predictions = 27
-list_idxs = [config["valid_size"]*i//log_n_predictions for i in range(log_n_predictions)]
+valid_size = 1000
+list_idxs = [valid_size*i//log_n_predictions for i in range(log_n_predictions)]
 batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in list_idxs]
 image_callback = my_callbacks.MyPrintingCallback(batch_image_idxs)
 
@@ -101,15 +98,3 @@ trainer.fit(
     train_dataloaders=dataloader_train,
     val_dataloaders=dataloader_valid,
 )
-
-# automatically auto-loads the best weights from the previous run
-#trainer.test(dataloaders=dataloader_test)
-
-# or call with preptrained model
-"""
-loaded_model = my_training.LitAutoEncoder.load_from_checkpoint(config["checkpoint_path"])
-trainer = pl.Trainer()
-trainer.test(loaded_model, dataloaders=dataloader_test)
-
-trainer.logged_metrics
-"""
