@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import random
 import torch
+from PIL import Image
+import pathlib
 
 import my_datamatrix_provider
 
@@ -51,4 +53,22 @@ class MyIterableDataset(torch.utils.data.IterableDataset):
                 yield {"target": _preprocess(dm_target),
                        "corrupted": _preprocess(dm_corrupt),
                        "text": dm_text.decode("utf8")}
+                
+
+class MyMapDatasetFromFolder(torch.utils.data.Dataset):
+    def __init__(self, folder) -> None:
+        super().__init__()
+        self.folder = folder
+
+    def __len__(self) -> int:
+        return len(list(pathlib.Path(self.folder).glob("text/*.txt")))
+
+    def __getitem__(self, i: int) -> dict:
+        with open(f"{self.folder}/text/{i}.txt", "r") as file:
+            text = file.readline()
+        target_image = Image.open(f"{self.folder}/target/{i}.png")
+        corrupted_image = Image.open(f"{self.folder}/corrupted/{i}.png")
+        return {"target": _preprocess(np.array(target_image)),
+                "corrupted": _preprocess(np.array(corrupted_image)),
+                "text": text}
                 
