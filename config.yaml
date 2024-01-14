@@ -2,13 +2,10 @@ valid_size: 1000
 test_size: 500
 valid_seed: 0
 test_seed: 1
-valid_batch_size: 64
-test_batch_size: 64
-train_batch_size: 64
 
 architecture:
   arch: "UnetPlusPlus"
-  encoder_name: "mobilenet_v2"
+  encoder_name: "efficientnet-b7"
   encoder_weights: null
   in_channels: 3
   classes: 1
@@ -16,12 +13,18 @@ architecture:
 
 
 optimizer:
-  lr: 0.001
+  lr: 0.0005
+
+valid_batch_size: 32
+test_batch_size: 32
+train_batch_size: 32
 
 trainer:
+  accumulate_grad_batches: 2
   max_steps: -1
   max_epochs: -1
   val_check_interval: 500
-  log_every_n_steps: 100
+  log_every_n_steps: 50
+  gradient_clip_val: 0.5
 
 checkpoint_path: "checkpoints/peach-galaxy-63/epoch=0-step=5000.ckpt"

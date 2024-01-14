@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import lightning.pytorch as pl
+import lightning.pytorch.utilities as pl_utils
 import segmentation_models_pytorch as smp
 
 import my_utils
@@ -51,5 +52,14 @@ class LitAutoEncoder(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), **self.optimizer_config)
         return optimizer
+    
+
+    def on_before_optimizer_step(self, optimizer):
+        # Compute the l2-norm for each layer every log step
+        if self.global_step % self.trainer.log_every_n_steps == 0:
+            norm_type = 2.0
+            norms = pl_utils.grad_norm(self.autoencoder, norm_type)
+            total_norm = norms[f"grad_{norm_type}_norm_total"]
+            self.log("train/total_grad_norm", total_norm)
     
     

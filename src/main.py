@@ -33,6 +33,9 @@ dataloader_train = torch.utils.data.DataLoader(
 os.makedirs("wandb", exist_ok=True)
 wandb_logger = WandbLogger(project="dp-dm-codes", save_dir="wandb")
 wandb_logger.experiment.config.update(config)
+wandb_logger.experiment.define_metric("valid/correctly_decoded", summary="max")
+wandb_logger.experiment.define_metric("valid/decodable", summary="max")
+wandb_logger.experiment.define_metric("valid/mse_loss", summary="min")
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
 # in terminal: wandb sync --cleanndarray
@@ -76,7 +79,7 @@ early_stop_callback = pl.callbacks.EarlyStopping(
     monitor="valid/correctly_decoded",
     mode="max",
     min_delta=0.005,
-    patience=3    
+    patience=5    
 )
 
 trainer = pl.Trainer(
@@ -86,7 +89,7 @@ trainer = pl.Trainer(
         checkpoint_callback,
         image_callback,
         early_stop_callback
-    ],
+    ]
 )
 
 wandb_logger.log_metrics(perfect_metrics)
