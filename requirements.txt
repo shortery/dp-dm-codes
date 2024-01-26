@@ -17,3 +17,4 @@ wandb
 plotly
 lovely-numpy
 lovely-tensors
+datasets
