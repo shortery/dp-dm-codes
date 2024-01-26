@@ -6,4 +6,5 @@ checkpoints
 wandb
 photos
 synthetic_valid_dataset
+real_test_dataset
 
