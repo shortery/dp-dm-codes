@@ -62,4 +62,8 @@ class LitAutoEncoder(pl.LightningModule):
             total_norm = norms[f"grad_{norm_type}_norm_total"]
             self.log("train/total_grad_norm", total_norm)
     
+
+    def predict_step(self, batch, batch_idx):
+        return self.autoencoder(batch["image"])
+    
     
