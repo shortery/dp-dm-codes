@@ -13,7 +13,7 @@ def image_to_tensor():
 def tensor_to_numpy_for_image(tensor: torch.Tensor) -> np.ndarray:
     batch_size, num_channels, w, h = tensor.shape
     
-    image_array = tensor.clone().cpu().numpy()
+    image_array = tensor.detach().clone().cpu().numpy()
     image_array = image_array * 255
     image_array = np.clip(image_array, 0, 255)
     image_array = image_array.astype(np.uint8)
