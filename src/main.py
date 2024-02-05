@@ -86,7 +86,8 @@ trainer = pl.Trainer(
         checkpoint_callback,
         image_callback,
         early_stop_callback
-    ]
+    ],
+    precision=16
 )
 
 wandb_logger.log_metrics(perfect_metrics)
