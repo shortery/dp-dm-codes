@@ -58,7 +58,7 @@ autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimiz
 os.makedirs("checkpoints", exist_ok=True)
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
     dirpath=f"checkpoints/{wandb_logger.experiment.name}",
-    filename="step={step}--corr_dec={valid/correctly_decoded:.2f}",
+    filename="step={step}--corr_dec={valid/correctly_decoded:.4f}",
     auto_insert_metric_name=False,
     save_top_k=2,
     save_last=True,
