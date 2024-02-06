@@ -66,4 +66,8 @@ class LitAutoEncoder(pl.LightningModule):
     def predict_step(self, batch, batch_idx):
         return self.autoencoder(batch["image"])
     
+
+    def forward(self, input):
+        return self.autoencoder(input)
+    
     
