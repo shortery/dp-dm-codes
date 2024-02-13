@@ -1,0 +1,12 @@
+checkpoints/glowing-snowball-134/step=7500--corr_dec=0.99.ckpt
+checkpoints/northern-sky-137/step=5000--corr_dec=0.99.ckpt
+checkpoints/gallant-deluge-140/step=7500--corr_dec=0.98.ckpt
+checkpoints/devout-firebrand-144/step=7500--corr_dec=0.70.ckpt
+checkpoints/dazzling-sound-135/step=6500--corr_dec=0.99.ckpt
+checkpoints/rural-frog-149/step=4500--corr_dec=0.99.ckpt
+checkpoints/dutiful-durian-141/step=6500--corr_dec=0.99.ckpt
+checkpoints/sage-cosmos-146/step=14000--corr_dec=0.73.ckpt
+checkpoints/snowy-haze-136/step=10000--corr_dec=1.00.ckpt
+checkpoints/desert-tree-150/step=7500--corr_dec=1.00.ckpt
+checkpoints/iconic-river-143/step=7500--corr_dec=0.99.ckpt
+checkpoints/sweet-glade-147/step=11500--corr_dec=0.72.ckpt
