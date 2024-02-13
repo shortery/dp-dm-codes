@@ -2,13 +2,13 @@ ipykernel
 notebook
 pylibdmtx
 Pillow
-numpy
+numpy==1.26.2
 timm
 albumentations
 torch==2.0.1
 matplotlib
 ppf-datamatrix
-pandas
+pandas==2.2.0
 lightning==2.0.2
 pytorch-lightning==2.0.2
 PyYAML
@@ -21,3 +21,4 @@ datasets
 tqdm
 onnx
 onnxruntime
+typer
