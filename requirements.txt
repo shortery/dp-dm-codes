@@ -21,4 +21,5 @@ datasets
 tqdm
 onnx
 onnxruntime
+onnxruntime-gpu
 typer
