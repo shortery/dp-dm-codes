@@ -3,6 +3,7 @@ import numpy as np
 import lightning.pytorch as pl
 import lightning.pytorch.utilities as pl_utils
 import segmentation_models_pytorch as smp
+import torchvision.transforms.functional
 
 import my_utils
 
@@ -25,30 +26,31 @@ class LitAutoEncoder(pl.LightningModule):
         return loss
 
 
-    def validation_step(self, batch, batch_idx):
-        target: torch.Tensor = batch["target"]
-        corrupted: torch.Tensor = batch["corrupted"]
+    def validation_step(self, batch, batch_idx, dataloader_idx):
         text: list[str] = batch["text"]
-        pred: torch.Tensor = self.autoencoder(corrupted)
+        if "target" in batch:
+            assert dataloader_idx == 0
 
-        metrics = my_utils.compute_metrics(target, pred, text, prefix="valid/")
-        self.log_dict(metrics, batch_size=target.shape[0])
+            target: torch.Tensor = batch["target"]
+            corrupted: torch.Tensor = batch["corrupted"]
+            pred: torch.Tensor = self.autoencoder(corrupted)
+            
+            metrics = my_utils.compute_metrics(pred, text, target, prefix="synthetic_valid/")
+            self.log_dict(metrics, batch_size=target.shape[0], add_dataloader_idx=False)
 
-        return target, corrupted, pred
-    
-
-    def test_step(self, batch, batch_idx):
-        target: torch.Tensor = batch["target"]
-        corrupted: torch.Tensor = batch["corrupted"]
-        text: list[str] = batch["text"]
-        pred: torch.Tensor = self.autoencoder(corrupted)
-
-        metrics = my_utils.compute_metrics(target, pred, text, prefix="test/")
-        self.log_dict(metrics, batch_size=target.shape[0])
-
-        return target, corrupted, pred
+            return target, corrupted, pred
         
+        else:
+            assert dataloader_idx == 1
 
+            image: torch.Tensor = batch["image"]
+            pred: torch.Tensor = self.autoencoder(image)
+            metrics = my_utils.compute_metrics(pred, text, prefix="real_valid/")
+            self.log_dict(metrics, batch_size=image.shape[0], add_dataloader_idx=False)
+
+            return image, pred
+    
+        
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), **self.optimizer_config)
         return optimizer
