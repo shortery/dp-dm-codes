@@ -4,6 +4,7 @@ import random
 import torch
 from PIL import Image
 import pathlib
+import datasets
 
 import my_datamatrix_provider
 
@@ -56,12 +57,16 @@ class MyIterableDataset(torch.utils.data.IterableDataset):
                 
 
 class MyMapDatasetFromFolder(torch.utils.data.Dataset):
-    def __init__(self, folder) -> None:
+    def __init__(self, folder, limit: int = -1) -> None:
         super().__init__()
         self.folder = folder
+        self.limit = limit
 
     def __len__(self) -> int:
-        return len(list(pathlib.Path(self.folder).glob("text/*.txt")))
+        num_files = len(list(pathlib.Path(self.folder).glob("text/*.txt")))
+        if self.limit > 0:
+            return min(num_files, self.limit)
+        return num_files
 
     def __getitem__(self, i: int) -> dict:
         with open(f"{self.folder}/text/{i}.txt", "r") as file:
@@ -72,3 +77,21 @@ class MyMapDatasetFromFolder(torch.utils.data.Dataset):
                 "corrupted": _preprocess(np.array(corrupted_image)),
                 "text": text}
                 
+
+class MyMapDatasetFromHuggingFace(torch.utils.data.Dataset):
+    def __init__(self, hf_dataset: datasets.Dataset) -> None:
+        super().__init__()
+        df = pd.DataFrame(hf_dataset)
+        df["image"] = df["image"].apply(self.resize_and_preprocess_image)
+        self.df = df
+
+    def resize_and_preprocess_image(self, image: Image.Image):
+        resized_image = image.resize((128, 128), resample=Image.Resampling.NEAREST)
+        return _preprocess(np.asarray(resized_image))
+
+    def __len__(self) -> int:
+        return len(self.df)
+    
+    def __getitem__(self, i: int) -> dict:
+        return {"image": self.df.iloc[i]["image"],
+                "text": self.df.iloc[i]["text"]}
