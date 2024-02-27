@@ -5,6 +5,7 @@ import pylibdmtx.pylibdmtx
 import lovely_tensors
 import lovely_numpy
 import warnings
+import concurrent.futures
 
 def image_to_tensor():
     # torchvision.transforms.functional.pil_to_tensor
@@ -31,26 +32,35 @@ def decode_dm_code(dm_code: np.ndarray):
     assert len(dm_code.shape) == 2
 
     dm_code_padded = np.pad(dm_code, 5, mode='constant', constant_values=255) # add 5-pixel width border of white pixels
-    decoded_dm_code = pylibdmtx.pylibdmtx.decode(dm_code_padded)
+
+    # pylibdmtx sometimes causes the whole process to crash without throwing an exception
+    # run function in subprocess so it is safe
+    try:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            future = executor.submit(pylibdmtx.pylibdmtx.decode, dm_code_padded)
+            decoded_dm_code = future.result()
+    except concurrent.futures.process.BrokenProcessPool as e:
+        print(f"Caught BrokenProcessPool exception while decoding image: {repr(e)}")
+        print(f"{dm_code_padded.min()=}, {dm_code_padded.max()=}")
+        return None
+    except Exception as e:
+        print(f"Caught exception while decoding image: {repr(e)}")
+        return None
     
     if len(decoded_dm_code) == 0:
         return None
     try:
         decoded_text = decoded_dm_code[0].data.decode("utf8")
+        return decoded_text
     except UnicodeDecodeError:
-        decoded_text = None
+        return None
+    except Exception as e:
+        print(f"Caught exception while decoding text: {repr(e)}")
+        return None
 
-    return decoded_text
 
-
-def compute_metrics(target: torch.Tensor, pred: torch.Tensor, text: list[str], prefix: str = None):
-    mse_loss: float = torch.nn.functional.mse_loss(target, pred).item()
-
-    target_array = tensor_to_numpy_for_image(target)
+def compute_metrics(pred: torch.Tensor, text: list[str], target: torch.Tensor = None, prefix: str = None):
     pred_array = tensor_to_numpy_for_image(pred)
-
-    close_pixels = np.mean(np.isclose(target_array, pred_array, atol=5))
-
     decodable = 0
     correctly_decoded = 0
     batch_size, num_channels, w, h = pred.shape
@@ -68,11 +78,13 @@ def compute_metrics(target: torch.Tensor, pred: torch.Tensor, text: list[str], p
         prefix = ""
 
     metrics = {
-        prefix + "mse_loss": mse_loss,
-        prefix + "close_pixels": close_pixels,
         prefix + "decodable": decodable / batch_size,
         prefix + "correctly_decoded": correctly_decoded / batch_size
     }
+
+    if target is not None:
+        mse_loss: float = torch.nn.functional.mse_loss(target, pred).item()
+        metrics[prefix + "mse_loss"] = mse_loss
 
     return metrics
 
