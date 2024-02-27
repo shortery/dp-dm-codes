@@ -21,25 +21,43 @@ class MyPrintingCallback(Callback):
         outputs: Optional[STEP_OUTPUT],
         batch: Any,
         batch_idx: int,
-        dataloader_idx: int = 0,
+        dataloader_idx: int,
     ) -> None:
         """Called when the validation batch ends."""
+        if dataloader_idx == 0: # synthetic dataset
 
-        for batch_i, image_i in self.batch_image_idxs:
-            if batch_idx == batch_i:
+            for batch_i, image_i in self.batch_image_idxs[dataloader_idx]:
+                if batch_idx == batch_i:
 
-                target, corrupted, pred = outputs
+                    target, corrupted, pred = outputs
 
-                # "convert" grayscale to rgb by copying the values to other channels
-                target = target.repeat(1, 3, 1, 1)
-                pred = pred.repeat(1, 3, 1, 1)
+                    # "convert" grayscale to rgb by copying the values to other channels
+                    target = target.repeat(1, 3, 1, 1)
+                    pred = pred.repeat(1, 3, 1, 1)
 
-                target_array = my_utils.tensor_to_numpy_for_image(target)
-                corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)
-                pred_array = my_utils.tensor_to_numpy_for_image(pred)
+                    target_array = my_utils.tensor_to_numpy_for_image(target)
+                    corrupted_array = my_utils.tensor_to_numpy_for_image(corrupted)
+                    pred_array = my_utils.tensor_to_numpy_for_image(pred)
 
-                images = np.concatenate([target_array[image_i], corrupted_array[image_i], pred_array[image_i]], axis=1)
-                wandb.log({
-                    f"images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
-                })
+                    images = np.concatenate([target_array[image_i], corrupted_array[image_i], pred_array[image_i]], axis=1)
+                    wandb.log({
+                        f"synthetic_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
+                    })
+
+        elif dataloader_idx == 1: # real dataset
+            for batch_i, image_i in self.batch_image_idxs[dataloader_idx]:
+                if batch_idx == batch_i:
+                    image, pred = outputs
+                    pred = pred.repeat(1, 3, 1, 1)
+                    image_array = my_utils.tensor_to_numpy_for_image(image)
+                    pred_array = my_utils.tensor_to_numpy_for_image(pred)
+
+                    images = np.concatenate([image_array[image_i], pred_array[image_i]], axis=1)
+                    wandb.log({
+                        f"real_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Image,    Predicted')
+                    })
+
+
+
+
 
