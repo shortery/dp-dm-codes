@@ -56,7 +56,8 @@ class ToGrey(albumentations.ImageOnlyTransform):
 
 
 class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
-    """Change background white pixels to random light color"""
+    """Change background white pixels to random light color
+        or change foreground black pixels to random dark color"""
 
     def __init__(self, always_apply=True, p=1.0):
         super(ChangeBackgroundColor, self).__init__(always_apply=always_apply, p=p)
@@ -68,11 +69,14 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
         synth_img = np.array(img)
         red, green, blue = synth_img.T
         white_areas = (red == 255) & (blue == 255) & (green == 255)
-        if random.random() <= 0.5:
-            random_color = random.sample(range(190, 250), 3) # light color
-        else: 
-            random_color = [random.randrange(170, 252)] * 3 # shade of grey
-        synth_img[white_areas.T] = random_color
+        black_areas = (red == 0) & (blue == 0) & (green == 0)
+        random_num = random.random()
+        if random_num <= 0.5:
+            random_color = random.sample(range(220, 255), 3) # light color
+            synth_img[white_areas.T] = random_color
+        elif random_num <= 0.6: 
+            random_color = random.sample(range(0, 50), 3) # dark color
+            synth_img[black_areas.T] = random_color
         return synth_img
 
     def get_transform_init_args_names(self):
@@ -83,20 +87,27 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
 def get_datamatrix_augs_preset():
     preserving = albumentations.Compose([
         albumentations.Resize(128, 128, interpolation=cv2.INTER_NEAREST),
+        albumentations.InvertImg(p=0.1),
         albumentations.RandomRotate90(),
         albumentations.Rotate(limit=[-3, 3], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
     ], p=1)
     destructive = albumentations.Compose([
-        ToRGB(always_apply=True),
-        ChangeBackgroundColor(always_apply=True),
-        albumentations.ISONoise(intensity=(0.5, 0.9), p=0.7),
+        ToRGB(),
+        ChangeBackgroundColor(p=0.9),
+        albumentations.ISONoise(intensity=(0.5, 0.9), p=0.8),
+        albumentations.PiecewiseAffine(scale=(0.001, 0.03), p=0.9),
+        albumentations.SomeOf([
+            albumentations.RandomFog(fog_coef_lower=0.5, alpha_coef=0.5, p=0.7),
+            albumentations.ColorJitter(brightness=(0.5, 1), contrast=(0.5, 1), saturation=0.5, p=0.9),
+            albumentations.Spatter(intensity=0.2, p=0.7),
+            albumentations.RandomSunFlare(src_radius=80, num_flare_circles_lower=3, src_color=((240, 240, 240)), p=0.5),
+        ], n=2, p=1),
         albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=(9, 15), p=1, allow_shifted=False),
+            albumentations.MotionBlur(blur_limit=(7, 11), p=1, allow_shifted=False),
+            albumentations.MedianBlur(blur_limit=3, p=0.4),
             albumentations.Defocus(radius=(3, 7), p=1),
-            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=1),
+            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=0.7),
         ], p=1),
-        albumentations.Spatter(intensity=0.6, p=0.7),
-        albumentations.RandomSunFlare(src_radius=80, num_flare_circles_lower=3, p=0.35)
     ])
     return preserving, destructive
 
