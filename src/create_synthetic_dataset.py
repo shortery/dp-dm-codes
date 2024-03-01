@@ -3,12 +3,12 @@ import os
 
 import my_datasets 
 
-valid_size = 1000
+valid_size = 500
 valid_seed = 0
 
 pd_dataset = my_datasets.create_dataset(valid_size, valid_seed)
 
-image_dir = "./synthetic_valid_dataset"
+image_dir = "./datasets/synthetic_valid_dataset_2"
 os.makedirs(image_dir, exist_ok=False)
 for col in pd_dataset.columns:
     os.makedirs(f"{image_dir}/{col}", exist_ok=False)
