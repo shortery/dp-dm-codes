@@ -55,27 +55,38 @@ class ToGrey(albumentations.ImageOnlyTransform):
     
 
 
-class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
-    """Change background white pixels to random light color
-        or change foreground black pixels to random dark color"""
+class ChangeColor(albumentations.ImageOnlyTransform):
+    """Change background white pixels to some light color
+        or change foreground black pixels to some dark color"""
 
     def __init__(self, always_apply=True, p=1.0):
-        super(ChangeBackgroundColor, self).__init__(always_apply=always_apply, p=p)
+        super(ChangeColor, self).__init__(always_apply=always_apply, p=p)
 
     def apply(self, img, **params):
         if not albumentations.is_rgb_image(img):
-            raise TypeError("ChangeBackgroundColor transformation expects 3-channel images.")
+            raise TypeError("ChangeColor transformation expects 3-channel images.")
         
         synth_img = np.array(img)
         red, green, blue = synth_img.T
         white_areas = (red == 255) & (blue == 255) & (green == 255)
         black_areas = (red == 0) & (blue == 0) & (green == 0)
         random_num = random.random()
-        if random_num <= 0.5:
-            random_color = random.sample(range(220, 255), 3) # light color
+        if random_num <= 0.50:
+            random_color = random.sample(range(180, 240), 3) # light color
+            if random_num <= 0.4:
+                 # make the color more yellow
+                random_color[1] -= 20
+                random_color[2] -= 50
+            elif random_num <= 0.45:
+                # make the color more blue
+                random_color[0] -= 60
+                random_color[1] -= 30
             synth_img[white_areas.T] = random_color
-        elif random_num <= 0.6: 
-            random_color = random.sample(range(0, 50), 3) # dark color
+        elif random_num <= 0.7:
+            random_color = [random.randrange(170, 250)] * 3 # light grey
+            synth_img[white_areas.T] = random_color
+        elif random_num <= 0.8: 
+            random_color = random.sample(range(0, 35), 3) # dark color
             synth_img[black_areas.T] = random_color
         return synth_img
 
@@ -87,27 +98,28 @@ class ChangeBackgroundColor(albumentations.ImageOnlyTransform):
 def get_datamatrix_augs_preset():
     preserving = albumentations.Compose([
         albumentations.Resize(128, 128, interpolation=cv2.INTER_NEAREST),
-        albumentations.InvertImg(p=0.1),
+        albumentations.InvertImg(p=0.08),
         albumentations.RandomRotate90(),
         albumentations.Rotate(limit=[-3, 3], border_mode=cv2.BORDER_CONSTANT, value = [255, 255, 255])
     ], p=1)
     destructive = albumentations.Compose([
         ToRGB(),
-        ChangeBackgroundColor(p=0.9),
-        albumentations.ISONoise(intensity=(0.5, 0.9), p=0.8),
+        ChangeColor(),
+        albumentations.ISONoise(intensity=(0.5, 0.9), p=1),
         albumentations.PiecewiseAffine(scale=(0.001, 0.03), p=0.9),
         albumentations.SomeOf([
-            albumentations.RandomFog(fog_coef_lower=0.5, alpha_coef=0.5, p=0.7),
-            albumentations.ColorJitter(brightness=(0.5, 1), contrast=(0.5, 1), saturation=0.5, p=0.9),
-            albumentations.Spatter(intensity=0.2, p=0.7),
-            albumentations.RandomSunFlare(src_radius=80, num_flare_circles_lower=3, src_color=((240, 240, 240)), p=0.5),
+            albumentations.Spatter(intensity=0.8, p=0.7),
+            albumentations.RandomSunFlare(src_radius=90, num_flare_circles_lower=3, src_color=((240, 240, 240)), p=0.5),
+            albumentations.RandomFog(fog_coef_lower=0.6, alpha_coef=0.5, p=0.6),
+            albumentations.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.8),
+            albumentations.RandomRain(drop_length=20, drop_width=3, brightness_coefficient=0.9, blur_value=5, rain_type="drizzle", p=0.1),
         ], n=2, p=1),
         albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=(7, 11), p=1, allow_shifted=False),
+            albumentations.MotionBlur(blur_limit=(7, 11), p=0.7, allow_shifted=False),
             albumentations.MedianBlur(blur_limit=3, p=0.4),
             albumentations.Defocus(radius=(3, 7), p=1),
-            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=0.7),
-        ], p=1),
+            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=0.5),
+        ], p=0.9),
     ])
     return preserving, destructive
 
