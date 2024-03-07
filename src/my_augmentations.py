@@ -105,21 +105,23 @@ def get_datamatrix_augs_preset():
     destructive = albumentations.Compose([
         ToRGB(),
         ChangeColor(),
-        albumentations.ISONoise(intensity=(0.5, 0.9), p=1),
-        albumentations.PiecewiseAffine(scale=(0.001, 0.03), p=0.9),
-        albumentations.SomeOf([
-            albumentations.Spatter(intensity=0.8, p=0.7),
-            albumentations.RandomSunFlare(src_radius=90, num_flare_circles_lower=3, src_color=((240, 240, 240)), p=0.5),
-            albumentations.RandomFog(fog_coef_lower=0.6, alpha_coef=0.5, p=0.6),
-            albumentations.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.8),
-            albumentations.RandomRain(drop_length=20, drop_width=3, brightness_coefficient=0.9, blur_value=5, rain_type="drizzle", p=0.1),
-        ], n=2, p=1),
-        albumentations.OneOf([
-            albumentations.MotionBlur(blur_limit=(7, 11), p=0.7, allow_shifted=False),
-            albumentations.MedianBlur(blur_limit=3, p=0.4),
-            albumentations.Defocus(radius=(3, 7), p=1),
-            albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=0.5),
-        ], p=0.9),
+        albumentations.ISONoise(intensity=(0.5, 0.95), p=1),
+        albumentations.Compose([
+            albumentations.PiecewiseAffine(scale=(0.001, 0.03), p=0.9),
+            albumentations.SomeOf([
+                albumentations.Spatter(intensity=0.8, p=0.7),
+                albumentations.RandomSunFlare(src_radius=90, num_flare_circles_lower=3, src_color=((240, 240, 240)), p=0.5),
+                albumentations.RandomFog(fog_coef_lower=0.4, alpha_coef=0.4, p=0.6),
+                albumentations.RandomBrightnessContrast(brightness_limit=(-0.4, 0.2), contrast_limit=(-0.3, 0.3), p=1),
+                albumentations.RandomRain(drop_length=20, drop_width=3, brightness_coefficient=0.9, blur_value=5, rain_type="drizzle", p=0.1),
+            ], n=2, p=1),
+            albumentations.OneOf([
+                albumentations.MotionBlur(blur_limit=(7, 9), p=0.7, allow_shifted=False),
+                albumentations.MedianBlur(blur_limit=3, p=0.4),
+                albumentations.Defocus(radius=(3, 7), p=1),
+                albumentations.Downscale(interpolation=cv2.INTER_LANCZOS4, p=0.5),
+            ], p=0.9),
+        ], p=0.92)
     ])
     return preserving, destructive
 
