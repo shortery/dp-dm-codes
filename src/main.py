@@ -18,25 +18,26 @@ import my_utils
 with open("config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
-dataloader_train = torch.utils.data.DataLoader(
+train_dataloader = torch.utils.data.DataLoader(
     dataset=my_datasets.MyIterableDataset(my_datamatrix_provider.DataMatrixProvider()),
     batch_size=config["train_batch_size"]
 )
 
-synthetic_dataset = my_datasets.MyMapDatasetFromFolder(folder="./datasets/synthetic_valid_dataset_2")
-synthetic_dataloader_valid = torch.utils.data.DataLoader(
-    dataset=synthetic_dataset,
+synthetic_valid_dataset = my_datasets.MyMapDatasetFromFolder(folder="./datasets/synthetic_valid_dataset_3")
+synthetic_valid_dataloader = torch.utils.data.DataLoader(
+    dataset=synthetic_valid_dataset,
     batch_size=config["valid_batch_size"]
 )
-fst_synthetic_batch = next(iter(synthetic_dataloader_valid)) 
+fst_synthetic_batch = next(iter(synthetic_valid_dataloader)) 
 print("synthetic min max:", fst_synthetic_batch["corrupted"].min(), fst_synthetic_batch["corrupted"].max())
 
-real_dataset = my_datasets.MyMapDatasetFromHuggingFace(hf_dataset=datasets.load_dataset("shortery/cropped-dm-codes")["test"])
-real_dataloader_valid = torch.utils.data.DataLoader(
-    dataset=real_dataset,
+hf_valid_dataset = datasets.load_dataset("shortery/dm-codes")["validation"]
+real_valid_dataset = my_datasets.MyMapDatasetFromHuggingFace(hf_dataset=hf_valid_dataset.map(my_datasets.crop_dm_code))
+real_valid_dataloader = torch.utils.data.DataLoader(
+    dataset=real_valid_dataset,
     batch_size=config["valid_batch_size"]
 )
-fst_real_batch = next(iter(real_dataloader_valid)) 
+fst_real_batch = next(iter(real_valid_dataloader)) 
 print("real min max:", fst_real_batch["image"].min(), fst_real_batch["image"].max())
 
 os.makedirs("wandb", exist_ok=True)
@@ -54,7 +55,7 @@ wandb_logger.experiment.define_metric("real_valid/decodable", summary="max")
 
 # metrics if the network works perfectly (prediction = target)
 perfect_metrics = []
-for batch in tqdm.tqdm(synthetic_dataloader_valid, desc="computing metrics if prediction=target"):
+for batch in tqdm.tqdm(synthetic_valid_dataloader, desc="computing metrics if prediction=target"):
     metrics = my_utils.compute_metrics(target=batch["target"], pred=batch["target"], text=batch["text"], prefix="perfect_network/")
     perfect_metrics.append(metrics)
 perfect_metrics = pd.DataFrame(perfect_metrics).mean().to_dict()
@@ -64,7 +65,7 @@ print(perfect_metrics)
 # metrics if the network just copies input
 # i.e., how many inputs can be (correctly) decoded just by the pylibdmtx code reader
 baseline_metrics = []
-for batch in tqdm.tqdm(synthetic_dataloader_valid, desc="computing metrics if prediction=input"):
+for batch in tqdm.tqdm(synthetic_valid_dataloader, desc="computing metrics if prediction=input"):
     corrupt = torchvision.transforms.functional.rgb_to_grayscale(batch["corrupted"])
     metrics = my_utils.compute_metrics(target=batch["target"], pred=corrupt, text=batch["text"], prefix="copy_baseline/")
     baseline_metrics.append(metrics)
@@ -73,7 +74,7 @@ print("if prediction=input:")
 print(baseline_metrics)
 # now for real dataset
 real_baseline_metrics = []
-for batch in tqdm.tqdm(real_dataloader_valid, desc="computing metrics if prediction=input in real dataset"):
+for batch in tqdm.tqdm(real_valid_dataloader, desc="computing metrics if prediction=input in real dataset"):
     image = torchvision.transforms.functional.rgb_to_grayscale(batch["image"])
     real_metrics = my_utils.compute_metrics(pred=image, text=batch["text"], prefix="copy_baseline_real/")
     real_baseline_metrics.append(real_metrics)
@@ -95,19 +96,14 @@ checkpoint_callback = pl.callbacks.ModelCheckpoint(
 )
 
 log_n_predictions = 36
-synth_list_idxs = [len(synthetic_dataset)*i//log_n_predictions for i in range(log_n_predictions)]
-real_list_idxs = [len(real_dataset)*i//log_n_predictions for i in range(log_n_predictions)]
+synth_list_idxs = [len(synthetic_valid_dataset)*i//log_n_predictions for i in range(log_n_predictions)]
+real_list_idxs = [len(real_valid_dataset)*i//log_n_predictions for i in range(log_n_predictions)]
 synth_batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in synth_list_idxs]
 real_batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in real_list_idxs]
 batch_image_idxs = [synth_batch_image_idxs, real_batch_image_idxs]
 image_callback = my_callbacks.MyPrintingCallback(batch_image_idxs)
 
-early_stop_callback = pl.callbacks.EarlyStopping(
-    monitor="synthetic_valid/correctly_decoded",
-    mode="max",
-    min_delta=0.005,
-    patience=5    
-)
+early_stop_callback = pl.callbacks.EarlyStopping(**config["early_stopping"])
 
 trainer = pl.Trainer(
     **config["trainer"],
@@ -116,8 +112,7 @@ trainer = pl.Trainer(
         checkpoint_callback,
         image_callback,
         early_stop_callback
-    ],
-    precision=16
+    ]
 )
 
 wandb_logger.log_metrics(perfect_metrics)
@@ -127,6 +122,6 @@ wandb_logger.log_table(key="validation_characteristics", dataframe=pd.DataFrame(
 
 trainer.fit(
     model=autoencoder,
-    train_dataloaders=dataloader_train,
-    val_dataloaders=[synthetic_dataloader_valid, real_dataloader_valid],
+    train_dataloaders=train_dataloader,
+    val_dataloaders=[synthetic_valid_dataloader, real_valid_dataloader],
 )

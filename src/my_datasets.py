@@ -5,6 +5,7 @@ import torch
 from PIL import Image
 import pathlib
 import datasets
+from skimage import transform
 
 import my_datamatrix_provider
 
@@ -81,13 +82,16 @@ class MyMapDatasetFromFolder(torch.utils.data.Dataset):
 class MyMapDatasetFromHuggingFace(torch.utils.data.Dataset):
     def __init__(self, hf_dataset: datasets.Dataset) -> None:
         super().__init__()
+        self.random_generator = random.Random(0)
         df = pd.DataFrame(hf_dataset)
-        df["image"] = df["image"].apply(self.resize_and_preprocess_image)
+        df["image"] = df["image"].apply(self.preprocess_image)
         self.df = df
 
-    def resize_and_preprocess_image(self, image: Image.Image):
-        resized_image = image.resize((128, 128), resample=Image.Resampling.NEAREST)
-        return _preprocess(np.asarray(resized_image))
+    def preprocess_image(self, image: Image.Image):
+        image = image.resize((128, 128), resample=Image.Resampling.NEAREST)
+        angle = self.random_generator.randint(0, 3) * 90
+        image = image.rotate(angle)
+        return _preprocess(np.asarray(image))
 
     def __len__(self) -> int:
         return len(self.df)
@@ -95,3 +99,22 @@ class MyMapDatasetFromHuggingFace(torch.utils.data.Dataset):
     def __getitem__(self, i: int) -> dict:
         return {"image": self.df.iloc[i]["image"],
                 "text": self.df.iloc[i]["text"]}
+    
+
+def crop_dm_code(example: dict, square_side: int = 200, square_padding: int = 25) -> dict:
+    vertices = np.asarray((example["tl"], example["tr"], example["br"], example["bl"]))
+    unit_square = np.asarray([
+        [square_padding, square_padding],
+        [square_side + square_padding, square_padding],
+        [square_side + square_padding, square_side + square_padding],
+        [square_padding, square_side + square_padding]
+    ])
+    transf = transform.ProjectiveTransform()
+    if not transf.estimate(unit_square, vertices): raise Exception("estimate failed")
+    cropped_np_image = transform.warp(
+        np.array(example["image"]),
+        transf,
+        output_shape=(square_side + square_padding * 2, square_side + square_padding * 2)
+    )
+    cropped_image = Image.fromarray((cropped_np_image * 255).astype(np.uint8))
+    return {"image": cropped_image}
