@@ -40,9 +40,10 @@ class MyPrintingCallback(Callback):
                     pred_array = my_utils.tensor_to_numpy_for_image(pred)
 
                     images = np.concatenate([target_array[image_i], corrupted_array[image_i], pred_array[image_i]], axis=1)
-                    wandb.log({
-                        f"synthetic_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
-                    })
+                    if not trainer.sanity_checking:
+                        wandb.log({
+                            f"synthetic_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Target,    Corrupted,    Predicted')
+                        }, step=trainer.global_step)
 
         elif dataloader_idx == 1: # real dataset
             for batch_i, image_i in self.batch_image_idxs[dataloader_idx]:
@@ -53,11 +54,7 @@ class MyPrintingCallback(Callback):
                     pred_array = my_utils.tensor_to_numpy_for_image(pred)
 
                     images = np.concatenate([image_array[image_i], pred_array[image_i]], axis=1)
-                    wandb.log({
-                        f"real_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Image,    Predicted')
-                    })
-
-
-
-
-
+                    if not trainer.sanity_checking:
+                        wandb.log({
+                            f"real_images/{batch_idx}_{image_i}_concatenated_img": wandb.Image(images, caption='Image,    Predicted')
+                        }, step=trainer.global_step)
