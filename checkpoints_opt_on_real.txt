@@ -1,0 +1,12 @@
+checkpoints/serene-wind-199/step=2000--corr_dec=0.5644.ckpt
+checkpoints/kind-pyramid-200/step=1600--corr_dec=0.5446.ckpt
+checkpoints/dutiful-star-201/step=2300--corr_dec=0.5545.ckpt
+checkpoints/logical-mountain-202/step=2300--corr_dec=0.5545.ckpt
+checkpoints/golden-bush-203/step=1000--corr_dec=0.5545.ckpt
+checkpoints/warm-pond-204/step=1400--corr_dec=0.5743.ckpt
+checkpoints/sage-wind-205/step=800--corr_dec=0.5347.ckpt
+checkpoints/firm-tree-206/step=1100--corr_dec=0.4950.ckpt
+checkpoints/wobbly-sound-207/step=600--corr_dec=0.5248.ckpt
+checkpoints/dandy-pyramid-208/step=300--corr_dec=0.5347.ckpt
+checkpoints/dashing-serenity-209/step=500--corr_dec=0.4653.ckpt
+checkpoints/glad-energy-210/step=100--corr_dec=0.4752.ckpt
