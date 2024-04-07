@@ -1,6 +1,6 @@
 architecture:
-  arch: "UnetPlusPlus"
-  encoder_name: "resnet18"
+  arch: "MAnet"
+  encoder_name: "densenet169"
   encoder_weights: null
   in_channels: 3
   classes: 1
@@ -15,16 +15,16 @@ test_batch_size: 64
 train_batch_size: 64
 
 early_stopping:
-  monitor: "synthetic_valid/correctly_decoded"
+  monitor: "real_valid/correctly_decoded"
   mode: "max"
-  min_delta: 0.002
-  patience: 5 
+  min_delta: 0
+  patience: 20 
 
 trainer:
   accumulate_grad_batches: 1
   max_steps: -1
   max_epochs: -1
-  val_check_interval: 200
+  val_check_interval: 100
   log_every_n_steps: 100
   gradient_clip_val: 0.5
   precision: "16-mixed"
