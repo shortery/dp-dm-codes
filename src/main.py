@@ -6,6 +6,8 @@ import torchvision.transforms.functional
 import pandas as pd
 import lightning.pytorch as pl
 from pytorch_lightning.loggers import WandbLogger
+import wandb
+import wandb.sdk
 import datasets
 import tqdm
 
@@ -42,12 +44,15 @@ print("real min max:", fst_real_batch["image"].min(), fst_real_batch["image"].ma
 
 os.makedirs("wandb", exist_ok=True)
 wandb_logger = WandbLogger(project="dp-dm-codes", save_dir="wandb")
-wandb_logger.experiment.config.update(config)
-wandb_logger.experiment.define_metric("synthetic_valid/correctly_decoded", summary="max")
-wandb_logger.experiment.define_metric("synthetic_valid/decodable", summary="max")
-wandb_logger.experiment.define_metric("synthetic_valid/mse_loss", summary="min")
-wandb_logger.experiment.define_metric("real_valid/correctly_decoded", summary="max")
-wandb_logger.experiment.define_metric("real_valid/decodable", summary="max")
+wandb_experiment = wandb_logger.experiment
+assert isinstance(wandb_experiment, wandb.sdk.wandb_run.Run)
+
+wandb_experiment.config.update(config)
+wandb_experiment.define_metric("synthetic_valid/correctly_decoded", summary="max")
+wandb_experiment.define_metric("synthetic_valid/decodable", summary="max")
+wandb_experiment.define_metric("synthetic_valid/mse_loss", summary="min")
+wandb_experiment.define_metric("real_valid/correctly_decoded", summary="max")
+wandb_experiment.define_metric("real_valid/decodable", summary="max")
 
 # delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
 # in terminal: wandb sync --cleanndarray
@@ -86,7 +91,7 @@ autoencoder = my_training.LitAutoEncoder(config["architecture"], config["optimiz
 
 os.makedirs("checkpoints", exist_ok=True)
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    dirpath=f"checkpoints/{wandb_logger.experiment.name}",
+    dirpath=f"checkpoints/{wandb_experiment.name}",
     filename="step={step}--corr_dec={real_valid/correctly_decoded:.4f}",
     auto_insert_metric_name=False,
     save_top_k=2,
@@ -115,10 +120,16 @@ trainer = pl.Trainer(
     ]
 )
 
-wandb_logger.log_metrics(perfect_metrics)
-wandb_logger.log_metrics(baseline_metrics)
-wandb_logger.log_metrics(real_baseline_metrics)
-wandb_logger.log_table(key="validation_characteristics", dataframe=pd.DataFrame([perfect_metrics | baseline_metrics | real_baseline_metrics]))
+
+wandb_experiment.log(perfect_metrics, step=0)
+wandb_experiment.log(baseline_metrics, step=0)
+wandb_experiment.log(real_baseline_metrics, step=0)
+wandb_experiment.log({
+    "validation_characteristics":
+    wandb.Table(dataframe=pd.DataFrame([perfect_metrics | baseline_metrics | real_baseline_metrics]))
+}, step=0)
+
+trainer.validate(model=autoencoder, dataloaders=[synthetic_valid_dataloader, real_valid_dataloader], verbose=False)
 
 trainer.fit(
     model=autoencoder,
