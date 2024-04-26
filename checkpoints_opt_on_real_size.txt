@@ -1,0 +1,8 @@
+checkpoints/swept-snowball-211/step=900--corr_dec=0.5446.ckpt
+checkpoints/golden-bush-203/step=1000--corr_dec=0.5545.ckpt
+checkpoints/charmed-plant-213/step=1600--corr_dec=0.5644.ckpt
+checkpoints/zany-deluge-215/step=1300--corr_dec=0.5446.ckpt
+checkpoints/snowy-fire-216/step=1100--corr_dec=0.5347.ckpt
+checkpoints/swept-gorge-217/step=1600--corr_dec=0.5644.ckpt
+checkpoints/warm-mountain-218/step=500--corr_dec=0.5248.ckpt
+checkpoints/dazzling-field-219/step=1200--corr_dec=0.5545.ckpt
