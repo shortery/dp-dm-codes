@@ -54,9 +54,6 @@ wandb_experiment.define_metric("synthetic_valid/mse_loss", summary="min")
 wandb_experiment.define_metric("real_valid/correctly_decoded", summary="max")
 wandb_experiment.define_metric("real_valid/decodable", summary="max")
 
-# delete from my local files such "runs" that are already logged to wandb (and older than 24 hours):
-# in terminal: wandb sync --cleanndarray
-
 
 # metrics if the network works perfectly (prediction = target)
 perfect_metrics = []
