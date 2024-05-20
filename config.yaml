@@ -1,6 +1,6 @@
 architecture:
-  arch: "MAnet"
-  encoder_name: "densenet169"
+  arch: "UnetPlusPlus"
+  encoder_name: "efficientnet-b3"
   encoder_weights: null
   in_channels: 3
   classes: 1
