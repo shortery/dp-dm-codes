@@ -85,8 +85,12 @@ def main(
             key_string = "before_nn_"
         elif decoded_text_column == "decoded_text_after_nn":
             key_string = "after_nn_"
+        
+        accuracies_dict["num_all"] = num_all
+        accuracies_dict[key_string + "num_correctly_decoded"] = num_correctly_decoded
+        accuracies_dict[key_string + "num_decoded"] = num_decoded
         accuracies_dict[key_string + "decode_rate"] = np.round(num_correctly_decoded / num_all, 4)
-        accuracies_dict[key_string + "misread_rate"] = np.round((num_decoded - num_correctly_decoded) / num_all, 4)
+        accuracies_dict[key_string + "misread_rate"] = np.round((num_decoded - num_correctly_decoded) / num_decoded, 4)
 
     
     # "a" means append to file (write just at the end)
