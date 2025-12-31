@@ -29,7 +29,7 @@ def create_dataset(num_samples: int, seed: int) -> pd.DataFrame:
     return pd.DataFrame(dataset, columns=["target", "corrupted", "text"])
 
 
-class MyMapDataset(torch.utils.data.Dataset):
+class DMMapDataset(torch.utils.data.Dataset):
     def __init__(self, dataset) -> None:
         super().__init__()
         self.dataset = dataset
@@ -43,7 +43,7 @@ class MyMapDataset(torch.utils.data.Dataset):
                 "text": self.dataset.iloc[i]["text"].decode("utf8")}
     
 
-class MyIterableDataset(torch.utils.data.IterableDataset):
+class DMIterableDataset(torch.utils.data.IterableDataset):
     def __init__(self, dm_provider: dm_codes.datamatrix_provider.DataMatrixProvider) -> None:
         super().__init__()
         self.dm_provider = dm_provider
@@ -57,7 +57,7 @@ class MyIterableDataset(torch.utils.data.IterableDataset):
                        "text": dm_text.decode("utf8")}
                 
 
-class MyMapDatasetFromFolder(torch.utils.data.Dataset):
+class DMMapDatasetFromFolder(torch.utils.data.Dataset):
     def __init__(self, folder, limit: int = -1) -> None:
         super().__init__()
         self.folder = folder
@@ -79,7 +79,7 @@ class MyMapDatasetFromFolder(torch.utils.data.Dataset):
                 "text": text}
                 
 
-class MyMapDatasetFromHuggingFace(torch.utils.data.Dataset):
+class DMMapDatasetFromHuggingFace(torch.utils.data.Dataset):
     def __init__(self, hf_dataset: datasets.Dataset) -> None:
         super().__init__()
         self.random_generator = random.Random(0)

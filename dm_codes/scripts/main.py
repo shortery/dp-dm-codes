@@ -21,11 +21,11 @@ with open("../../config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 train_dataloader = torch.utils.data.DataLoader(
-    dataset=dm_codes.datasets.MyIterableDataset(dm_codes.datamatrix_provider.DataMatrixProvider()),
+    dataset=dm_codes.datasets.DMIterableDataset(dm_codes.datamatrix_provider.DataMatrixProvider()),
     batch_size=config["train_batch_size"]
 )
 
-synthetic_valid_dataset = dm_codes.datasets.MyMapDatasetFromFolder(folder="../../datasets/synthetic_valid_dataset_3")
+synthetic_valid_dataset = dm_codes.datasets.DMMapDatasetFromFolder(folder="../../datasets/synthetic_valid_dataset_3")
 synthetic_valid_dataloader = torch.utils.data.DataLoader(
     dataset=synthetic_valid_dataset,
     batch_size=config["valid_batch_size"]
@@ -34,7 +34,7 @@ fst_synthetic_batch = next(iter(synthetic_valid_dataloader))
 print("synthetic min max:", fst_synthetic_batch["corrupted"].min(), fst_synthetic_batch["corrupted"].max())
 
 hf_valid_dataset = datasets.load_dataset("shortery/dm-codes")["validation"]
-real_valid_dataset = dm_codes.datasets.MyMapDatasetFromHuggingFace(hf_dataset=hf_valid_dataset.map(dm_codes.datasets.crop_dm_code))
+real_valid_dataset = dm_codes.datasets.DMMapDatasetFromHuggingFace(hf_dataset=hf_valid_dataset.map(dm_codes.datasets.crop_dm_code))
 real_valid_dataloader = torch.utils.data.DataLoader(
     dataset=real_valid_dataset,
     batch_size=config["valid_batch_size"]
@@ -103,7 +103,7 @@ real_list_idxs = [len(real_valid_dataset)*i//log_n_predictions for i in range(lo
 synth_batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in synth_list_idxs]
 real_batch_image_idxs = [(i // config["valid_batch_size"], i % config["valid_batch_size"]) for i in real_list_idxs]
 batch_image_idxs = [synth_batch_image_idxs, real_batch_image_idxs]
-image_callback = dm_codes.callbacks.MyPrintingCallback(batch_image_idxs)
+image_callback = dm_codes.callbacks.DMPrintingCallback(batch_image_idxs)
 
 early_stop_callback = pl.callbacks.EarlyStopping(**config["early_stopping"])
 

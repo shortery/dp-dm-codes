@@ -10,7 +10,7 @@ import dm_codes.training
 import dm_codes.utils
 
 
-class MyPrintingCallback(Callback):
+class DMPrintingCallback(Callback):
     def __init__(self, batch_image_idxs: list[int]):
         super().__init__()
         self.batch_image_idxs = batch_image_idxs
