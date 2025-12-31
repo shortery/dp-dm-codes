@@ -6,8 +6,8 @@ import lightning.pytorch as pl
 from lightning.pytorch.callbacks import Callback
 import wandb
 
-import dm_codes.my_training
-import dm_codes.my_utils
+import dm_codes.training
+import dm_codes.utils
 
 
 class MyPrintingCallback(Callback):
@@ -17,7 +17,7 @@ class MyPrintingCallback(Callback):
 
     def on_validation_batch_end(self,
         trainer: pl.Trainer,
-        pl_module: dm_codes.my_training.LitAutoEncoder,
+        pl_module: dm_codes.training.LitAutoEncoder,
         outputs: Optional[STEP_OUTPUT],
         batch: Any,
         batch_idx: int,
@@ -35,9 +35,9 @@ class MyPrintingCallback(Callback):
                     target = target.repeat(1, 3, 1, 1)
                     pred = pred.repeat(1, 3, 1, 1)
 
-                    target_array = dm_codes.my_utils.tensor_to_numpy_for_image(target)
-                    corrupted_array = dm_codes.my_utils.tensor_to_numpy_for_image(corrupted)
-                    pred_array = dm_codes.my_utils.tensor_to_numpy_for_image(pred)
+                    target_array = dm_codes.utils.tensor_to_numpy_for_image(target)
+                    corrupted_array = dm_codes.utils.tensor_to_numpy_for_image(corrupted)
+                    pred_array = dm_codes.utils.tensor_to_numpy_for_image(pred)
 
                     images = np.concatenate([target_array[image_i], corrupted_array[image_i], pred_array[image_i]], axis=1)
                     if not trainer.sanity_checking:
@@ -50,8 +50,8 @@ class MyPrintingCallback(Callback):
                 if batch_idx == batch_i:
                     image, pred = outputs
                     pred = pred.repeat(1, 3, 1, 1)
-                    image_array = dm_codes.my_utils.tensor_to_numpy_for_image(image)
-                    pred_array = dm_codes.my_utils.tensor_to_numpy_for_image(pred)
+                    image_array = dm_codes.utils.tensor_to_numpy_for_image(image)
+                    pred_array = dm_codes.utils.tensor_to_numpy_for_image(pred)
 
                     images = np.concatenate([image_array[image_i], pred_array[image_i]], axis=1)
                     if not trainer.sanity_checking:

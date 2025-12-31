@@ -5,7 +5,7 @@ import lightning.pytorch.utilities as pl_utils
 import segmentation_models_pytorch as smp
 import torchvision.transforms.functional
 
-import dm_codes.my_utils
+import dm_codes.utils
 
 
 class LitAutoEncoder(pl.LightningModule):
@@ -35,7 +35,7 @@ class LitAutoEncoder(pl.LightningModule):
             corrupted: torch.Tensor = batch["corrupted"]
             pred: torch.Tensor = self.autoencoder(corrupted)
             
-            metrics = dm_codes.my_utils.compute_metrics(pred, text, target, prefix="synthetic_valid/")
+            metrics = dm_codes.utils.compute_metrics(pred, text, target, prefix="synthetic_valid/")
             self.log_dict(metrics, batch_size=target.shape[0], add_dataloader_idx=False)
 
             return target, corrupted, pred
@@ -45,7 +45,7 @@ class LitAutoEncoder(pl.LightningModule):
 
             image: torch.Tensor = batch["image"]
             pred: torch.Tensor = self.autoencoder(image)
-            metrics = dm_codes.my_utils.compute_metrics(pred, text, prefix="real_valid/")
+            metrics = dm_codes.utils.compute_metrics(pred, text, prefix="real_valid/")
             self.log_dict(metrics, batch_size=image.shape[0], add_dataloader_idx=False)
 
             return image, pred

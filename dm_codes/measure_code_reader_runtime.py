@@ -12,9 +12,9 @@ import json
 import statistics
 import timeit
 
-import dm_codes.my_utils
-import dm_codes.my_training
-import dm_codes.my_datasets
+import dm_codes.utils
+import dm_codes.training
+import dm_codes.datasets
 
 app = typer.Typer(pretty_exceptions_show_locals=False, pretty_exceptions_enable=False)
 
@@ -26,7 +26,7 @@ def prepare_test_dataset(example: dict, random_generator:random.Random) -> dict:
     return {"image": image}
 
 def preprocess_image(batch):
-    return {"image": dm_codes.my_datasets._preprocess(np.asarray(batch["image"]))}
+    return {"image": dm_codes.datasets._preprocess(np.asarray(batch["image"]))}
 
 @app.command()
 def main(
@@ -42,7 +42,7 @@ def main(
     random_generator = random.Random(seed)
 
     # crop and preprocess the image
-    hf_dataset = hf_test_dataset.map(dm_codes.my_datasets.crop_dm_code)
+    hf_dataset = hf_test_dataset.map(dm_codes.datasets.crop_dm_code)
     hf_dataset = hf_dataset.map(lambda x: prepare_test_dataset(x, random_generator))
 
     # create pandas dataframe and add new collumn decoded_text
@@ -54,7 +54,7 @@ def main(
     pd_dataset["decoding_time_before_nn"] = np.zeros(len(pd_dataset))
     for i, img in enumerate(tqdm(np_grayscale_images, desc="Decoding Before NN")):
         start_wall_time = timeit.default_timer()
-        decoded_text_before_nn = dm_codes.my_utils.decode_dm_code(img)
+        decoded_text_before_nn = dm_codes.utils.decode_dm_code(img)
         end_wall_time = timeit.default_timer()
         pd_dataset.at[i, "decoded_text_before_nn"] = decoded_text_before_nn
         pd_dataset.at[i, "decoding_time_before_nn"] = round(end_wall_time - start_wall_time, 4)
@@ -70,7 +70,7 @@ def main(
 
     # load model from checkpoint and compute predictions
     trainer = pl.Trainer(precision=16)
-    loaded_model = dm_codes.my_training.LitAutoEncoder.load_from_checkpoint(checkpoint_path)
+    loaded_model = dm_codes.training.LitAutoEncoder.load_from_checkpoint(checkpoint_path)
     loaded_model.eval()
     predictions = trainer.predict(loaded_model, dataloader_test)
 
@@ -79,7 +79,7 @@ def main(
     # (otherwise I could iterate it as "for batch in predictions: for pred in batch: ...")
     pd_dataset["nn_prediction"] = list(itertools.chain(*predictions))
 
-    np_prediction_for_image = pd_dataset["nn_prediction"].map(lambda x: np.squeeze(dm_codes.my_utils.tensor_to_numpy_for_image(x.unsqueeze(dim=0))))
+    np_prediction_for_image = pd_dataset["nn_prediction"].map(lambda x: np.squeeze(dm_codes.utils.tensor_to_numpy_for_image(x.unsqueeze(dim=0))))
     pd_dataset["nn_output_image"] = np_prediction_for_image.map(lambda x: Image.fromarray(x, mode="L"))
     
     # measure decoding time after nn
@@ -87,7 +87,7 @@ def main(
     pd_dataset["decoding_time_after_nn"] = np.zeros(len(pd_dataset))
     for i, pred in enumerate(tqdm(np_prediction_for_image, desc="Decoding After NN")):
         start_wall_time = timeit.default_timer()
-        decoded_text_after_nn = dm_codes.my_utils.decode_dm_code(pred)
+        decoded_text_after_nn = dm_codes.utils.decode_dm_code(pred)
         end_wall_time = timeit.default_timer()
         pd_dataset.at[i, "decoded_text_after_nn"] = decoded_text_after_nn
         pd_dataset.at[i, "decoding_time_after_nn"] = round(end_wall_time - start_wall_time, 4)

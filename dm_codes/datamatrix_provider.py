@@ -5,7 +5,7 @@ from PIL import Image
 import pylibdmtx.pylibdmtx
 import string
 
-import dm_codes.my_augmentations
+import dm_codes.augmentations
 
 def visualize_images(text, target_img, corrupted_img):
     f, ax = plt.subplots(1, 2)
@@ -48,7 +48,7 @@ class DataMatrixProvider:
         dm_code = pylibdmtx.pylibdmtx.encode(encoded_text)
         w, h = dm_code.width, dm_code.height
     
-        preserving_augs, destructive_augs = dm_codes.my_augmentations.get_datamatrix_augs_preset()
+        preserving_augs, destructive_augs = dm_codes.augmentations.get_datamatrix_augs_preset()
         clean_image = np.asarray(Image.frombytes("RGB", (w, h), dm_code.pixels).convert("L"))
         target_image =preserving_augs(image=clean_image)["image"]
         corrupted_image = destructive_augs(image=target_image)["image"]
