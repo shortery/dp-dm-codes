@@ -1,0 +1,10 @@
+[project]
+name = "dm_codes"
+description = "DataMatrix Image Reconstruction to Enhance Decodability"
+version = "0.0.1"
+authors = [
+    { name = "", email = "" }
+]
+
+[tool.setuptools]
+packages = ["dm_codes"]

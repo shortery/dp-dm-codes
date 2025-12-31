@@ -10,9 +10,9 @@ import random
 import typer
 import json
 
-import my_utils
-import my_training
-import my_datasets
+import dm_codes.my_utils
+import dm_codes.my_training
+import dm_codes.my_datasets
 
 app = typer.Typer(pretty_exceptions_show_locals=False, pretty_exceptions_enable=False)
 
@@ -24,7 +24,7 @@ def prepare_test_dataset(example: dict, random_generator:random.Random) -> dict:
     return {"image": image}
 
 def preprocess_image(batch):
-    return {"image": my_datasets._preprocess(np.asarray(batch["image"]))}
+    return {"image": dm_codes.my_datasets._preprocess(np.asarray(batch["image"]))}
 
 @app.command()
 def main(
@@ -40,13 +40,13 @@ def main(
     random_generator = random.Random(seed)
 
     # crop and preprocess the image
-    hf_dataset = hf_test_dataset.map(my_datasets.crop_dm_code)
+    hf_dataset = hf_test_dataset.map(dm_codes.my_datasets.crop_dm_code)
     hf_dataset = hf_dataset.map(lambda x: prepare_test_dataset(x, random_generator))
 
     # create pandas dataframe and add new collumn decoded_text
     pd_dataset = pd.DataFrame(hf_dataset)
     np_grayscale_images = pd_dataset["image"].map(lambda x: np.asarray(x.convert("L")))
-    pd_dataset["decoded_text_before_nn"] = np_grayscale_images.map(lambda x: my_utils.decode_dm_code(x))
+    pd_dataset["decoded_text_before_nn"] = np_grayscale_images.map(lambda x: dm_codes.my_utils.decode_dm_code(x))
     
     # prepare dataset to be an input to the network
     preprocessed_dataset = hf_dataset.map(preprocess_image)
@@ -59,7 +59,7 @@ def main(
 
     # load model from checkpoint and compute predictions
     trainer = pl.Trainer(precision=16)
-    loaded_model = my_training.LitAutoEncoder.load_from_checkpoint(checkpoint_path)
+    loaded_model = dm_codes.my_training.LitAutoEncoder.load_from_checkpoint(checkpoint_path)
     loaded_model.eval()
     predictions = trainer.predict(loaded_model, dataloader_test)
 
@@ -67,9 +67,9 @@ def main(
     # (otherwise I could iterate it as "for batch in predictions: for pred in batch: ...")
     pd_dataset["nn_prediction"] = list(itertools.chain(*predictions))
 
-    np_prediction_for_image = pd_dataset["nn_prediction"].map(lambda x: np.squeeze(my_utils.tensor_to_numpy_for_image(x.unsqueeze(dim=0))))
+    np_prediction_for_image = pd_dataset["nn_prediction"].map(lambda x: np.squeeze(dm_codes.my_utils.tensor_to_numpy_for_image(x.unsqueeze(dim=0))))
     pd_dataset["nn_output_image"] = np_prediction_for_image.map(lambda x: Image.fromarray(x, mode="L"))
-    pd_dataset["decoded_text_after_nn"] = np_prediction_for_image.map(my_utils.decode_dm_code)
+    pd_dataset["decoded_text_after_nn"] = np_prediction_for_image.map(dm_codes.my_utils.decode_dm_code)
 
     accuracies_dict = {
         "checkpoint_path": checkpoint_path,
@@ -105,4 +105,4 @@ if __name__ == "__main__":
 
 
 # run in terminal:
-# $ for ckpt in $(cat checkpoints.txt); do python src/measure_accuracy.py $ckpt "checkpoints_accuracies.jsonl"; done
+# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/measure_accuracy.py $ckpt "checkpoints_accuracies.jsonl"; done

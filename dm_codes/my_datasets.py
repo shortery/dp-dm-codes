@@ -7,7 +7,7 @@ import pathlib
 import datasets
 from skimage import transform
 
-import my_datamatrix_provider
+import dm_codes.my_datamatrix_provider
 
 def _preprocess(image: np.ndarray) -> np.ndarray:
     if image.ndim == 2:
@@ -22,7 +22,7 @@ def _preprocess(image: np.ndarray) -> np.ndarray:
 def create_dataset(num_samples: int, seed: int) -> pd.DataFrame:
     random.seed(seed)
     dataset = []
-    dm_provider = my_datamatrix_provider.DataMatrixProvider()
+    dm_provider = dm_codes.my_datamatrix_provider.DataMatrixProvider()
     for _ in range(num_samples):
         dm_target, dm_corrupt, dm_text = next(dm_provider)[0]
         dataset.append((dm_target, dm_corrupt, dm_text))
@@ -44,7 +44,7 @@ class MyMapDataset(torch.utils.data.Dataset):
     
 
 class MyIterableDataset(torch.utils.data.IterableDataset):
-    def __init__(self, dm_provider: my_datamatrix_provider.DataMatrixProvider) -> None:
+    def __init__(self, dm_provider: dm_codes.my_datamatrix_provider.DataMatrixProvider) -> None:
         super().__init__()
         self.dm_provider = dm_provider
 

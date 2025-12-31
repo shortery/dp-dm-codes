@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-import my_training
+import dm_codes.my_training
 
 app = typer.Typer(pretty_exceptions_show_locals=False, pretty_exceptions_enable=False)
 
@@ -40,7 +40,7 @@ def main(
         batch_size=batch_size
     )
 
-    loaded_model = my_training.LitAutoEncoder.load_from_checkpoint(checkpoint_path, map_location=device)
+    loaded_model = dm_codes.my_training.LitAutoEncoder.load_from_checkpoint(checkpoint_path, map_location=device)
     loaded_model.eval()
 
     list_wall_times = []
@@ -119,4 +119,4 @@ if __name__ == "__main__":
 
 
 # run in terminal:
-# $ for ckpt in $(cat checkpoints.txt); do python src/measure_runtime.py 100 $ckpt "checkpoints_runtimes.jsonl"; sleep 2; done
+# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/measure_runtime.py 100 $ckpt "checkpoints_runtimes.jsonl"; sleep 2; done
