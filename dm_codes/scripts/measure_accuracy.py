@@ -105,4 +105,4 @@ if __name__ == "__main__":
 
 
 # run in terminal:
-# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/measure_accuracy.py $ckpt "checkpoints_accuracies.jsonl"; done
+# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/scripts/measure_accuracy.py $ckpt "checkpoints_accuracies.jsonl"; done

@@ -8,7 +8,7 @@ valid_seed = 0
 
 pd_dataset = dm_codes.datasets.create_dataset(valid_size, valid_seed)
 
-image_dir = "./datasets/synthetic_valid_dataset_3"
+image_dir = "../../datasets/synthetic_valid_dataset_3"
 os.makedirs(image_dir, exist_ok=False)
 for col in pd_dataset.columns:
     os.makedirs(f"{image_dir}/{col}", exist_ok=False)

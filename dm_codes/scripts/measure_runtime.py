@@ -119,4 +119,4 @@ if __name__ == "__main__":
 
 
 # run in terminal:
-# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/measure_runtime.py 100 $ckpt "checkpoints_runtimes.jsonl"; sleep 2; done
+# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/scripts/measure_runtime.py 100 $ckpt "checkpoints_runtimes.jsonl"; sleep 2; done

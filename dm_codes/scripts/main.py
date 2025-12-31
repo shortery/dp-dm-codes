@@ -17,7 +17,7 @@ import dm_codes.training
 import dm_codes.callbacks
 import dm_codes.utils
 
-with open("config.yaml", "r") as file:
+with open("../../config.yaml", "r") as file:
     config = yaml.safe_load(file)
 
 train_dataloader = torch.utils.data.DataLoader(
@@ -25,7 +25,7 @@ train_dataloader = torch.utils.data.DataLoader(
     batch_size=config["train_batch_size"]
 )
 
-synthetic_valid_dataset = dm_codes.datasets.MyMapDatasetFromFolder(folder="./datasets/synthetic_valid_dataset_3")
+synthetic_valid_dataset = dm_codes.datasets.MyMapDatasetFromFolder(folder="../../datasets/synthetic_valid_dataset_3")
 synthetic_valid_dataloader = torch.utils.data.DataLoader(
     dataset=synthetic_valid_dataset,
     batch_size=config["valid_batch_size"]
@@ -86,9 +86,9 @@ print(real_baseline_metrics)
 
 autoencoder = dm_codes.training.LitAutoEncoder(config["architecture"], config["optimizer"])
 
-os.makedirs("checkpoints", exist_ok=True)
+os.makedirs("../../checkpoints", exist_ok=True)
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
-    dirpath=f"checkpoints/{wandb_experiment.name}",
+    dirpath=f"../../checkpoints/{wandb_experiment.name}",
     filename="step={step}--corr_dec={real_valid/correctly_decoded:.4f}",
     auto_insert_metric_name=False,
     save_top_k=2,

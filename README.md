@@ -23,19 +23,19 @@ Real dataset used for evaluation is created by manually collecting and annotatin
 ## How to train
 Training data is generated on the fly and the real validation dataset is automatically downloaded from HuggingFace. However, you need to generate a synthetic validation dataset using this command:
 ```
-python dm_codes/create_synthetic_dataset.py
+python dm_codes/scripts/create_synthetic_dataset.py
 ```
 
 To run the training, use:
 ```
-python dm_codes/main.py
+python dm_codes/scripts/main.py
 ```
-Training parameters can be specified in `dm_codes/config.yaml`. The training will be logged in wandb and checkpoints will be saved in the `checkpoints` folder.
+Training parameters can be specified in `config.yaml`. The training will be logged in wandb and checkpoints will be saved in the `checkpoints` folder.
 
 ## How to evaluate
 To evaluate on the real test dataset, run:
 ```
-python dm_codes/measure_accuracy.py <checkpoint_path.ckpt> <saved_accuracies_path.json>
+python dm_codes/scripts/measure_accuracy.py <checkpoint_path.ckpt> <saved_accuracies_path.json>
 ```
 where the metrics will be saved into `saved_accuracies_path.json`.
 

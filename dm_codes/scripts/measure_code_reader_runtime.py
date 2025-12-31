@@ -143,4 +143,4 @@ if __name__ == "__main__":
 
 
 # run in terminal:
-# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/measure_code_reader_runtime.py $ckpt "checkpoints_code_reader_runtimes.jsonl"; done
+# $ for ckpt in $(cat checkpoints.txt); do python dm_codes/scripts/measure_code_reader_runtime.py $ckpt "checkpoints_code_reader_runtimes.jsonl"; done
