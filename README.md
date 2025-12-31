@@ -28,7 +28,7 @@ python dm_codes/scripts/create_synthetic_dataset.py
 
 To run the training, use:
 ```
-python dm_codes/scripts/main.py
+python dm_codes/scripts/train.py
 ```
 Training parameters can be specified in `config.yaml`. The training will be logged in wandb and checkpoints will be saved in the `checkpoints` folder.
 
