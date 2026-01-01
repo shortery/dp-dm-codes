@@ -3,7 +3,7 @@ name = "dm_codes"
 description = "DataMatrix Image Reconstruction to Enhance Decodability"
 version = "0.0.1"
 authors = [
-    { name = "", email = "" }
+    { name = "", email = "70586740+shortery@users.noreply.github.com" }
 ]
 
 [tool.setuptools]
